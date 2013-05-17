@@ -31,6 +31,8 @@
 
 #include "smd_private.h"
 
+#define MSM_SHARED_RAM_PHYS 0x80000000  /* SSD_RIL: Garbage_Filter */
+
 #define ACOUSTIC_IOCTL_MAGIC 'p'
 #define ACOUSTIC_ARM11_DONE	_IOW(ACOUSTIC_IOCTL_MAGIC, 22, unsigned int)
 

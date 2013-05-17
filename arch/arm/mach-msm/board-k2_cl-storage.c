@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -26,8 +26,6 @@
 
 #include "board-8930.h"
 #include "board-storage-common-a.h"
-#define	GPIO(X)		(X) /* Temp add for build pass */
-#define	SD_CDETz	GPIO(10)
 
 /* MSM8960 has 5 SDCC controllers */
 enum sdcc_controllers {
@@ -56,9 +54,21 @@ static struct msm_mmc_reg_data mmc_vdd_reg_data[MAX_SDCC_CONTROLLER] = {
 		.name = "sdc_vdd",
 		.high_vol_level = 2950000,
 		.low_vol_level = 2950000,
+		/*
+		 * Normally this is not an always ON regulator. On this
+		 * platform, unfortunately the sd detect line is connected
+		 * to this via esd circuit and so turn this off/on while card
+		 * is not present causes the sd detect line to toggle
+		 * continuously. This is expected to be fixed in the newer
+		 * hardware revisions - maybe once that is done, this can be
+		 * reverted.
+		 */
+		.always_on = 1,
+		.lpm_sup = 1,
 		.hpm_uA = 800000, /* 800mA */
+		.lpm_uA = 9000,
 		.reset_at_init = true,
-	}
+	},
 };
 
 /* All SDCC controllers may require voting for VDD PAD voltage */
@@ -147,19 +157,19 @@ static struct msm_mmc_pad_pull sdc3_pad_pull_on_cfg[] = {
 };
 
 static struct msm_mmc_pad_pull sdc3_pad_pull_off_cfg[] = {
-	{TLMM_PULL_SDC3_CLK, GPIO_CFG_PULL_DOWN},
+	{TLMM_PULL_SDC3_CLK, GPIO_CFG_NO_PULL},
 	/*
 	 * SDC3 CMD line should be PULLed UP otherwise fluid platform will
 	 * see transitions (1 -> 0 and 0 -> 1) on card detection line,
 	 * which would result in false card detection interrupts.
 	 */
-	{TLMM_PULL_SDC3_CMD, GPIO_CFG_PULL_DOWN},
+	{TLMM_PULL_SDC3_CMD, GPIO_CFG_PULL_UP},
 	/*
 	 * Keeping DATA lines status to PULL UP will make sure that
 	 * there is no current leak during sleep if external pull up
 	 * is connected to DATA lines.
 	 */
-	{TLMM_PULL_SDC3_DATA, GPIO_CFG_PULL_DOWN}
+	{TLMM_PULL_SDC3_DATA, GPIO_CFG_PULL_UP}
 };
 
 static struct msm_mmc_pad_pull_data mmc_pad_pull_data[MAX_SDCC_CONTROLLER] = {
@@ -208,8 +218,11 @@ static struct msm_mmc_pin_data mmc_slot_pin_data[MAX_SDCC_CONTROLLER] = {
 	},
 };
 
+#define MSM_MPM_PIN_SDC1_DAT1	17
+#define MSM_MPM_PIN_SDC3_DAT1	21
+
 static unsigned int sdc1_sup_clk_rates[] = {
-	400000, 24000000, 48000000, 96000000,
+	400000, 24000000, 48000000, 96000000
 };
 
 #ifdef CONFIG_MMC_MSM_SDC3_SUPPORT
@@ -219,36 +232,32 @@ static unsigned int sdc3_sup_clk_rates[] = {
 #endif
 
 #ifdef CONFIG_MMC_MSM_SDC1_SUPPORT
-static unsigned int msm8930_emmcslot_type = MMC_TYPE_MMC;
-static struct mmc_platform_data msm8930_sdc1_data = {
+static struct mmc_platform_data msm8960_sdc1_data = {
 	.ocr_mask       = MMC_VDD_27_28 | MMC_VDD_28_29,
 #ifdef CONFIG_MMC_MSM_SDC1_8_BIT_SUPPORT
 	.mmc_bus_width  = MMC_CAP_8_BIT_DATA,
 #else
 	.mmc_bus_width  = MMC_CAP_4_BIT_DATA,
 #endif
-	.slot_type      = &msm8930_emmcslot_type,
 	.sup_clk_table	= sdc1_sup_clk_rates,
 	.sup_clk_cnt	= ARRAY_SIZE(sdc1_sup_clk_rates),
 	.pclk_src_dfab	= 1,
 	.nonremovable	= 1,
 	.vreg_data	= &mmc_slot_vreg_data[SDCC1],
 	.pin_data	= &mmc_slot_pin_data[SDCC1],
-	.uhs_caps	= (MMC_CAP_1_8V_DDR | MMC_CAP_UHS_SDR25 | MMC_CAP_UHS_SDR50
-		| MMC_CAP_UHS_DDR50),
+	.mpm_sdiowakeup_int = MSM_MPM_PIN_SDC1_DAT1,
 	.msm_bus_voting_data = &sps_to_ddr_bus_voting_data,
+	.uhs_caps2	= MMC_CAP2_HS200_1_8V_SDR,
 };
 #endif
 
 #ifdef CONFIG_MMC_MSM_SDC3_SUPPORT
-static unsigned int msm8930_sdslot_type = MMC_TYPE_SD;
-static struct mmc_platform_data msm8930_sdc3_data = {
+static struct mmc_platform_data msm8960_sdc3_data = {
 	.ocr_mask       = MMC_VDD_27_28 | MMC_VDD_28_29,
 	.mmc_bus_width  = MMC_CAP_4_BIT_DATA,
 	.sup_clk_table	= sdc3_sup_clk_rates,
 	.sup_clk_cnt	= ARRAY_SIZE(sdc3_sup_clk_rates),
 	.pclk_src_dfab	= 1,
-	.slot_type      = &msm8930_sdslot_type,
 #ifdef CONFIG_MMC_MSM_SDC3_WP_SUPPORT
 /*TODO: Insert right replacement for PM8038 */
 #ifndef MSM8930_PHASE_2
@@ -263,21 +272,20 @@ static struct mmc_platform_data msm8930_sdc3_data = {
 #ifdef CONFIG_MMC_MSM_CARD_HW_DETECTION
 /*TODO: Insert right replacement for PM8038 */
 #ifndef MSM8930_PHASE_2
-	.status_gpio	= PM8921_GPIO_PM_TO_SYS(SD_CDETz),
-	.status_irq	= PM8921_GPIO_IRQ(PM8921_IRQ_BASE, SD_CDETz),
+	.status_gpio	= PM8921_GPIO_PM_TO_SYS(26),
+	.status_irq	= PM8921_GPIO_IRQ(PM8921_IRQ_BASE, 26),
 #else
-	.status_gpio	= SD_CDETz,
-	.status_irq	= MSM_GPIO_TO_INT(SD_CDETz),
+	.status_gpio	= 94,
+	.status_irq	= MSM_GPIO_TO_INT(94),
 #endif
 	.irq_flags	= IRQF_TRIGGER_RISING | IRQF_TRIGGER_FALLING,
 	.is_status_gpio_active_low = true,
 #endif
-#if 0
 	.xpc_cap	= 1,
 	.uhs_caps	= (MMC_CAP_UHS_SDR12 | MMC_CAP_UHS_SDR25 |
 			MMC_CAP_UHS_SDR50 | MMC_CAP_UHS_DDR50 |
 			MMC_CAP_UHS_SDR104 | MMC_CAP_MAX_CURRENT_800),
-#endif
+	.mpm_sdiowakeup_int = MSM_MPM_PIN_SDC3_DAT1,
 	.msm_bus_voting_data = &sps_to_ddr_bus_voting_data,
 };
 #endif
@@ -285,8 +293,18 @@ static struct mmc_platform_data msm8930_sdc3_data = {
 void __init msm8930_init_mmc(void)
 {
 #ifdef CONFIG_MMC_MSM_SDC1_SUPPORT
+	/*
+	 * When eMMC runs in DDR mode on CDP platform, we have
+	 * seen instability due to DATA CRC errors. These errors are
+	 * attributed to long physical path between MSM and eMMC on CDP.
+	 * So let's not enable the DDR mode on CDP platform but let other
+	 * platforms take advantage of eMMC DDR mode.
+	 */
+	if (!machine_is_msm8930_cdp())
+		msm8960_sdc1_data.uhs_caps |= (MMC_CAP_1_8V_DDR |
+					       MMC_CAP_UHS_DDR50);
 	/* SDC1 : eMMC card connected */
-	msm_add_sdcc(1, &msm8930_sdc1_data);
+	msm_add_sdcc(1, &msm8960_sdc1_data);
 #endif
 #ifdef CONFIG_MMC_MSM_SDC3_SUPPORT
 	/*
@@ -300,22 +318,16 @@ void __init msm8930_init_mmc(void)
 	if ((SOCINFO_VERSION_MAJOR(socinfo_get_version()) >= 1 &&
 			SOCINFO_VERSION_MINOR(socinfo_get_version()) >= 2) ||
 			machine_is_msm8930_cdp()) {
-		msm8930_sdc3_data.vreg_data->vdd_data->always_on = false;
-		msm8930_sdc3_data.vreg_data->vdd_data->reset_at_init = false;
+		msm8960_sdc3_data.vreg_data->vdd_data->always_on = false;
+		msm8960_sdc3_data.vreg_data->vdd_data->reset_at_init = false;
 	}
+
 	/* SDC3: External card slot */
 	if (!machine_is_msm8930_cdp()) {
-		msm8930_sdc3_data.wpswitch_gpio = 0;
-		msm8930_sdc3_data.wpswitch_polarity = 0;
+		msm8960_sdc3_data.wpswitch_gpio = 0;
+		msm8960_sdc3_data.wpswitch_polarity = 0;
 	}
-	msm_add_sdcc(3, &msm8930_sdc3_data);
+
+	msm_add_sdcc(3, &msm8960_sdc3_data);
 #endif
 }
-
-struct msm_mmc_pad_drv_data *mmc_get_pdd_drv_data(int controller)
-{
-	if (controller >= MAX_SDCC_CONTROLLER)
-		return NULL;
-	return &mmc_pad_drv_data[controller];
-}
-

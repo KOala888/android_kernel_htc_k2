@@ -27,6 +27,12 @@ struct android_usb_function {
 };
 
 struct android_usb_product {
+
+	/* Start mod for HTC devices */
+	/* Default vendor ID */
+	__u16 vendor_id;
+	/* End mod for HTC devices */
+
 	/* Default product ID. */
 	__u16 product_id;
 

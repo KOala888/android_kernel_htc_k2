@@ -325,6 +325,16 @@ config ARCH_MSM9625
 	select MULTI_IRQ_HANDLER
 	select MSM_V2_TLMM
 
+#Start HTC Device Additions
+
+config MACH_K2_CL
+        depends on ARCH_MSM8930
+        bool "K2_CL"
+        help
+        Support for the HTC K2#CL (Boost Mobile)
+
+#End HTC Device Additions
+
 endmenu
 
 choice

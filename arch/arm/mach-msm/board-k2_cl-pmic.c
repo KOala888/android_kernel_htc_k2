@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -86,27 +86,21 @@ struct pm8xxx_mpp_init {
 			PM_GPIO_STRENGTH_HIGH, \
 			PM_GPIO_FUNC_NORMAL, 0, 0)
 
-#define EVM	0x99
-#define EVM1	99
-#define XA	0
-#define XB	1
-#define XC	2
-#define XD	3
-#define PVT	0x80
-
 /* Initial pm8038 GPIO configurations */
 static struct pm8xxx_gpio_init pm8038_gpios[] __initdata = {
 	/* keys GPIOs */
-#ifdef CONFIG_MACH_TC2
-	PM8XXX_GPIO_OUTPUT_FUNC(1, 0, PM_GPIO_FUNC_1),
-#endif
+	PM8XXX_GPIO_INPUT(3, PM_GPIO_PULL_UP_30),
+	PM8XXX_GPIO_INPUT(8, PM_GPIO_PULL_UP_30),
+	PM8XXX_GPIO_INPUT(10, PM_GPIO_PULL_UP_30),
+	PM8XXX_GPIO_INPUT(11, PM_GPIO_PULL_UP_30),
+	/* haptics gpio */
+	PM8XXX_GPIO_OUTPUT_FUNC(7, 0, PM_GPIO_FUNC_1),
+	/* MHL PWR EN */
+	PM8XXX_GPIO_OUTPUT_VIN(5, 1, PM_GPIO_VIN_VPH),
 };
 
 /* Initial pm8038 MPP configurations */
-static struct pm8xxx_mpp_init pm8038_mpps[] __initdata = {
-	/* External 5V regulator enable; shared by HDMI and USB_OTG switches. */
-	PM8XXX_MPP_INIT(3, D_INPUT, PM8038_MPP_DIG_LEVEL_VPH, DIN_TO_INT),
-};
+static struct pm8xxx_mpp_init pm8038_mpps[] __initdata = {};
 
 void __init msm8930_pm8038_gpio_mpp_init(void)
 {
@@ -165,8 +159,6 @@ static struct pm8xxx_adc_amux pm8xxx_adc_channels_data[] = {
 		ADC_DECIMATION_TYPE2, ADC_SCALE_XOTHERM},
 	{"pa_therm0", ADC_MPP_1_AMUX3, CHAN_PATH_SCALING1, AMUX_RSV1,
 		ADC_DECIMATION_TYPE2, ADC_SCALE_PA_THERM},
-	{"mpp_amux6", ADC_MPP_1_AMUX6, CHAN_PATH_SCALING1, AMUX_RSV1,
-		ADC_DECIMATION_TYPE2, ADC_SCALE_DEFAULT},
 };
 
 static struct pm8xxx_adc_properties pm8xxx_adc_data = {
@@ -175,229 +167,11 @@ static struct pm8xxx_adc_properties pm8xxx_adc_data = {
 	.bipolar                = 0,
 };
 
-static const struct pm8xxx_adc_map_pt k2_cl_adcmap_btm_table[] = {
-	{-200,	1671},
-	{-190,	1663},
-	{-180,	1654},
-	{-170,	1646},
-	{-160,	1636},
-	{-150,	1627},
-	{-140,	1617},
-	{-130,	1606},
-	{-120,	1595},
-	{-110,	1584},
-	{-100,	1572},
-	{-90,	1560},
-	{-80,	1548},
-	{-70,	1534},
-	{-60,	1521},
-	{-50,	1507},
-	{-40,	1492},
-	{-30,	1477},
-	{-20,	1462},
-	{-10,	1446},
-	{-0,	1430},
-	{10,	1413},
-	{20,	1396},
-	{30,	1379},
-	{40,	1361},
-	{50,	1343},
-	{60,	1325},
-	{70,	1306},
-	{80,	1287},
-	{90,	1267},
-	{100,	1248},
-	{110,	1228},
-	{120,	1208},
-	{130,	1188},
-	{140,	1168},
-	{150,	1147},
-	{160,	1127},
-	{170,	1106},
-	{180,	1086},
-	{190,	1065},
-	{200,	1044},
-	{210,	1024},
-	{220,	1004},
-	{230,	983},
-	{240,	963},
-	{250,	943},
-	{260,	923},
-	{270,	903},
-	{280,	884},
-	{290,	864},
-	{300,	845},
-	{310,	827},
-	{320,	808},
-	{330,	790},
-	{340,	772},
-	{350,	755},
-	{360,	738},
-	{370,	721},
-	{380,	704},
-	{390,	688},
-	{400,	672},
-	{410,	657},
-	{420,	642},
-	{430,	627},
-	{440,	613},
-	{450,	599},
-	{460,	585},
-	{470,	572},
-	{480,	559},
-	{490,	547},
-	{500,	535},
-	{510,	523},
-	{520,	511},
-	{530,	500},
-	{540,	489},
-	{550,	479},
-	{560,	469},
-	{570,	459},
-	{580,	449},
-	{590,	440},
-	{600,	431},
-	{610,	423},
-	{620,	414},
-	{630,	406},
-	{640,	398},
-	{650,	390},
-	{660,	383},
-	{670,	376},
-	{680,	369},
-	{690,	363},
-	{700,	356},
-	{710,	350},
-	{720,	344},
-	{730,	338},
-	{740,	333},
-	{750,	327},
-	{760,	322},
-	{770,	317},
-	{780,	312},
-	{790,	308}
-};
-
-static struct pm8xxx_adc_map_table pm8xxx_adcmap_btm_table = {
-	.table = k2_cl_adcmap_btm_table,
-	.size = ARRAY_SIZE(k2_cl_adcmap_btm_table),
-};
-
-
-static const struct pm8xxx_adc_map_pt k2_cl_sprint_adcmap_btm_table[] = {
-	{-200,	1670},
-	{-190,	1662},
-	{-180,	1654},
-	{-170,	1645},
-	{-160,	1636},
-	{-150,	1626},
-	{-140,	1616},
-	{-130,	1606},
-	{-120,	1595},
-	{-110,	1583},
-	{-100,	1571},
-	{-90,	1559},
-	{-80,	1546},
-	{-70,	1533},
-	{-60,	1519},
-	{-50,	1505},
-	{-40,	1491},
-	{-30,	1476},
-	{-20,	1460},
-	{-10,	1444},
-	{-0,	1428},
-	{10,	1411},
-	{20,	1393},
-	{30,	1376},
-	{40,	1358},
-	{50,	1339},
-	{60,	1321},
-	{70,	1301},
-	{80,	1282},
-	{90,	1262},
-	{100,	1242},
-	{110,	1222},
-	{120,	1202},
-	{130,	1181},
-	{140,	1161},
-	{150,	1140},
-	{160,	1119},
-	{170,	1097},
-	{180,	1077},
-	{190,	1055},
-	{200,	1034},
-	{210,	1013},
-	{220,	992},
-	{230,	971},
-	{240,	950},
-	{250,	930},
-	{260,	909},
-	{270,	889},
-	{280,	869},
-	{290,	849},
-	{300,	829},
-	{310,	810},
-	{320,	790},
-	{330,	772},
-	{340,	753},
-	{350,	735},
-	{360,	717},
-	{370,	700},
-	{380,	683},
-	{390,	666},
-	{400,	649},
-	{410,	633},
-	{420,	618},
-	{430,	602},
-	{440,	587},
-	{450,	573},
-	{460,	559},
-	{470,	545},
-	{480,	531},
-	{490,	518},
-	{500,	506},
-	{510,	493},
-	{520,	481},
-	{530,	470},
-	{540,	458},
-	{550,	447},
-	{560,	437},
-	{570,	426},
-	{580,	416},
-	{590,	406},
-	{600,	397},
-	{610,	388},
-	{620,	379},
-	{630,	371},
-	{640,	362},
-	{650,	354},
-	{660,	347},
-	{670,	339},
-	{680,	332},
-	{690,	325},
-	{700,	318},
-	{710,	312},
-	{720,	306},
-	{730,	299},
-	{740,	294},
-	{750,	288},
-	{760,	282},
-	{770,	277},
-	{780,	272},
-	{790,	267}
-};
-
-static struct pm8xxx_adc_map_table pm8xxx_sprint_adcmap_btm_table = {
-	.table = k2_cl_sprint_adcmap_btm_table,
-	.size = ARRAY_SIZE(k2_cl_sprint_adcmap_btm_table),
-};
-
 static struct pm8xxx_adc_platform_data pm8xxx_adc_pdata = {
 	.adc_channel            = pm8xxx_adc_channels_data,
 	.adc_num_board_channel  = ARRAY_SIZE(pm8xxx_adc_channels_data),
 	.adc_prop               = &pm8xxx_adc_data,
 	.adc_mpp_base		= PM8038_MPP_PM_TO_SYS(1),
-	.adc_map_btm_table	= &pm8xxx_sprint_adcmap_btm_table,
 };
 
 static struct pm8xxx_irq_platform_data pm8xxx_irq_pdata __devinitdata = {
@@ -415,7 +189,7 @@ static struct pm8xxx_mpp_platform_data pm8xxx_mpp_pdata __devinitdata = {
 };
 
 static struct pm8xxx_rtc_platform_data pm8xxx_rtc_pdata __devinitdata = {
-	.rtc_write_enable	= true,
+	.rtc_write_enable	= false,
 	.rtc_alarm_powerup	= false,
 };
 
@@ -429,36 +203,34 @@ static int pm8921_therm_mitigation[] = {
 	1100,
 	700,
 	600,
-	225,
+	325,
 };
 
-#define MAX_VOLTAGE_MV		4340
+#define MAX_VOLTAGE_MV		4200
+#define CHG_TERM_MA		100
 static struct pm8921_charger_platform_data pm8921_chg_pdata __devinitdata = {
-	.safety_time		= 480,
+	.safety_time		= 180,
 	.update_time		= 60000,
 	.max_voltage		= MAX_VOLTAGE_MV,
 	.min_voltage		= 3200,
-	.resume_voltage_delta	= 50,
-	.term_current		= 50,
-	.cool_temp		= 0,
-	.warm_temp		= 48,
+	.resume_voltage_delta	= 100,
+	.term_current		= CHG_TERM_MA,
+	.cool_temp		= 10,
+	.warm_temp		= 40,
 	.temp_check_period	= 1,
-	.max_bat_chg_current	= 1125,
-	.cool_bat_chg_current	= 1125,
-	.warm_bat_chg_current	= 1125,
-	.cool_bat_voltage	= 4200,
-	.warm_bat_voltage	= 4000,
-	.mbat_in_gpio		= 94,/* MBAT_IN : 94*/
+	.max_bat_chg_current	= 1100,
+	.cool_bat_chg_current	= 350,
+	.warm_bat_chg_current	= 350,
+	.cool_bat_voltage	= 4100,
+	.warm_bat_voltage	= 4100,
 	.thermal_mitigation	= pm8921_therm_mitigation,
 	.thermal_levels		= ARRAY_SIZE(pm8921_therm_mitigation),
-	.cold_thr = PM_SMBC_BATT_TEMP_COLD_THR__HIGH,
-	.hot_thr = PM_SMBC_BATT_TEMP_HOT_THR__LOW,
 	.led_src_config		= LED_SRC_VPH_PWR,
 };
 
-#define PM8038_WLED_MAX_CURRENT		20
+#define PM8038_WLED_MAX_CURRENT		25
 #define PM8XXX_LED_PWM_PERIOD		1000
-#define PM8XXX_LED_PWM_DUTY_MS		64
+#define PM8XXX_LED_PWM_DUTY_MS		20
 #define PM8038_RGB_LED_MAX_CURRENT	12
 
 static struct led_info pm8038_led_info[] = {
@@ -467,13 +239,14 @@ static struct led_info pm8038_led_info[] = {
 		.default_trigger	= "bkl_trigger",
 	},
 	[1] = {
-		.name			= "amber",
+		.name			= "led:rgb_red",
+		.default_trigger	= "battery-charging",
 	},
 	[2] = {
-		.name			= "green",
+		.name			= "led:rgb_green",
 	},
 	[3] = {
-		.name			= "button-backlight",
+		.name			= "led:rgb_blue",
 	},
 };
 
@@ -487,21 +260,18 @@ static struct wled_config_data wled_cfg = {
 	.cs_out_en = true,
 	.ctrl_delay_us = 0,
 	.op_fdbck = true,
-	.ovp_val = WLED_OVP_35V,
+	.ovp_val = WLED_OVP_32V,
 	.boost_curr_lim = WLED_CURR_LIMIT_525mA,
 	.num_strings = 1,
 };
-#if defined(CONFIG_MACH_TC2) || defined(CONFIG_MACH_K2_CL)
-static int pm8038_led0_pwm_duty_pcts[64] = {
-			0, 15, 30, 45, 60, 75, 90, 100,
-			100, 90, 75, 60, 45, 30, 15, 0,
-			0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0
 
+static int pm8038_led0_pwm_duty_pcts[56] = {
+		1, 4, 8, 12, 16, 20, 24, 28, 32, 36,
+		40, 44, 46, 52, 56, 60, 64, 68, 72, 76,
+		80, 84, 88, 92, 96, 100, 100, 100, 98, 95,
+		92, 88, 84, 82, 78, 74, 70, 66, 62, 58,
+		58, 54, 50, 48, 42, 38, 34, 30, 26, 22,
+		14, 10, 6, 4, 1
 };
 
 static struct pm8xxx_pwm_duty_cycles pm8038_led0_pwm_duty_cycles = {
@@ -510,38 +280,31 @@ static struct pm8xxx_pwm_duty_cycles pm8038_led0_pwm_duty_cycles = {
 	.duty_ms = PM8XXX_LED_PWM_DUTY_MS,
 	.start_idx = 0,
 };
-#endif
+
 static struct pm8xxx_led_config pm8038_led_configs[] = {
 	[0] = {
 		.id = PM8XXX_ID_WLED,
 		.mode = PM8XXX_LED_MODE_MANUAL,
 		.max_current = PM8038_WLED_MAX_CURRENT,
-		.default_state = 1,
+		.default_state = 0,
 		.wled_cfg = &wled_cfg,
 	},
 	[1] = {
 		.id = PM8XXX_ID_RGB_LED_RED,
 		.mode = PM8XXX_LED_MODE_PWM1,
+		.max_current = PM8038_RGB_LED_MAX_CURRENT,
 		.pwm_channel = 5,
 		.pwm_period_us = PM8XXX_LED_PWM_PERIOD,
+		.pwm_duty_cycles = &pm8038_led0_pwm_duty_cycles,
 	},
 	[2] = {
 		.id = PM8XXX_ID_RGB_LED_GREEN,
 		.mode = PM8XXX_LED_MODE_PWM1,
-		.pwm_channel = 4,
-		.pwm_period_us = PM8XXX_LED_PWM_PERIOD,
-	},
-#ifdef CONFIG_MACH_TC2
-	[3] = {
-		.id = PM8XXX_ID_RGB_LED_BLUE,
-		.mode = PM8XXX_LED_MODE_PWM1,
 		.max_current = PM8038_RGB_LED_MAX_CURRENT,
-		.pwm_channel = 0,
+		.pwm_channel = 4,
 		.pwm_period_us = PM8XXX_LED_PWM_PERIOD,
 		.pwm_duty_cycles = &pm8038_led0_pwm_duty_cycles,
 	},
-#endif
-#ifdef CONFIG_MACH_K2_CL
 	[3] = {
 		.id = PM8XXX_ID_RGB_LED_BLUE,
 		.mode = PM8XXX_LED_MODE_PWM1,
@@ -550,7 +313,6 @@ static struct pm8xxx_led_config pm8038_led_configs[] = {
 		.pwm_period_us = PM8XXX_LED_PWM_PERIOD,
 		.pwm_duty_cycles = &pm8038_led0_pwm_duty_cycles,
 	},
-#endif
 };
 
 static struct pm8xxx_led_platform_data pm8xxx_leds_pdata = {
@@ -568,18 +330,32 @@ static struct pm8xxx_misc_platform_data pm8xxx_misc_pdata = {
 	.priority		= 0,
 };
 
-static struct pm8921_bms_platform_data pm8921_bms_pdata __devinitdata = {
-	.r_sense		= 10,
-	.i_test			= 2000,
-	.v_failure		= 3000,
-	.max_voltage_uv		= MAX_VOLTAGE_MV * 1000,
-	.rconn_mohm		= 0,
+/*
+ *	0x254=0xC8 (Threshold=110, preamp bias=01)
+ *	0x255=0xC1 (Hold=110, max attn=0000, mute=1)
+ *	0x256=0xB0 (decay=101, attack=10, delay=0)
+ */
+
+static struct pm8xxx_spk_platform_data pm8xxx_spk_pdata = {
+	.spk_add_enable		= false,
+	.cd_ng_threshold	= 0x0,
+	.cd_nf_preamp_bias	= 0x1,
+	.cd_ng_hold		= 0x6,
+	.cd_ng_max_atten	= 0x0,
+	.noise_mute		= 1,
+	.cd_ng_decay_rate	= 0x5,
+	.cd_ng_attack_rate	= 0x2,
+	.cd_delay		= 0x0,
 };
 
-static struct pm8xxx_vibrator_platform_data pm8xxx_vib_pdata = {
-	.initial_vibrate_ms = 0,
-	.max_timeout_ms = 15000,
-	.level_mV = 3100,
+static struct pm8921_bms_platform_data pm8921_bms_pdata __devinitdata = {
+	.battery_type			= BATT_UNKNOWN,
+	.r_sense			= 10,
+	.v_cutoff			= 3400,
+	.max_voltage_uv			= MAX_VOLTAGE_MV * 1000,
+	.shutdown_soc_valid_limit	= 20,
+	.adjust_soc_low_threshold	= 25,
+	.chg_term_ua			= CHG_TERM_MA * 1000,
 };
 
 static struct pm8038_platform_data pm8038_platform_data __devinitdata = {
@@ -594,8 +370,8 @@ static struct pm8038_platform_data pm8038_platform_data __devinitdata = {
 	.bms_pdata		= &pm8921_bms_pdata,
 	.adc_pdata		= &pm8xxx_adc_pdata,
 	.leds_pdata		= &pm8xxx_leds_pdata,
-	.vibrator_pdata         = &pm8xxx_vib_pdata,
 	.ccadc_pdata		= &pm8xxx_ccadc_pdata,
+	.spk_pdata		= &pm8xxx_spk_pdata,
 };
 
 static struct msm_ssbi_platform_data msm8930_ssbi_pm8038_pdata __devinitdata = {
@@ -608,12 +384,13 @@ static struct msm_ssbi_platform_data msm8930_ssbi_pm8038_pdata __devinitdata = {
 
 void __init msm8930_init_pmic(void)
 {
-	if (system_rev <= XC)
-		pm8xxx_adc_pdata.adc_map_btm_table	= &pm8xxx_adcmap_btm_table;
-
 	pmic_reset_irq = PM8038_IRQ_BASE + PM8038_RESOUT_IRQ;
 	msm8960_device_ssbi_pmic.dev.platform_data =
 				&msm8930_ssbi_pm8038_pdata;
 	pm8038_platform_data.num_regulators
 		= msm8930_pm8038_regulator_pdata_len;
+	if (machine_is_apq8064_mtp())
+		pm8921_bms_pdata.battery_type = BATT_PALLADIUM;
+	else if (machine_is_apq8064_liquid())
+		pm8921_bms_pdata.battery_type = BATT_DESAY;
 }
