@@ -10,11 +10,6 @@
  * GNU General Public License for more details.
  *
  */
-/* HTC_AUD, USB_AUDIO ++ */
-#ifdef CONFIG_SUPPORT_USB_SPEAKER
-#include <linux/pm_qos_params.h>
-#endif
-/* HTC_AUD, USB_AUDIO -- */
 
 #include <linux/kernel.h>
 #include <linux/platform_device.h>
@@ -212,29 +207,6 @@ static int __init pmem_kernel_ebi1_size_setup(char *p)
 }
 early_param("pmem_kernel_ebi1_size", pmem_kernel_ebi1_size_setup);
 #endif
-
-
-
-/* HTC_AUD, USB_AUDIO ++ */
-
-#ifdef CONFIG_SUPPORT_USB_SPEAKER
-struct pm_qos_request_list pm_qos_req_dma;
-void msm_hsusb_setup_gpio(enum usb_otg_state state)
-{
-	switch (state) {
-	case OTG_STATE_UNDEFINED:
-		headset_ext_detect(USB_NO_HEADSET);
-		pm_qos_update_request(&pm_qos_req_dma, PM_QOS_DEFAULT_VALUE);
-		break;
-	case OTG_STATE_A_HOST:
-		pm_qos_update_request(&pm_qos_req_dma, 3);
-		break;
-	default:
-		break;
-	}
-}
-#endif
-/* HTC_AUD, USB_AUDIO -- */
 
 #ifdef CONFIG_ANDROID_PMEM
 static unsigned pmem_size = MSM_PMEM_SIZE;
@@ -1864,11 +1836,6 @@ static struct msm_otg_platform_data msm_otg_pdata = {
 #ifdef CONFIG_MSM_BUS_SCALING
 	.bus_scale_table	= &usb_bus_scale_pdata,
 #endif
-/* HTC_AUD, USB_AUDIO ++ */
-#ifdef CONFIG_SUPPORT_USB_SPEAKER
-	.setup_gpio		= msm_hsusb_setup_gpio,
-#endif
-/* HTC_AUD, USB_AUDIO -- */
 };
 #endif
 
@@ -2838,24 +2805,6 @@ static struct msm_i2c_platform_data msm8960_i2c_qup_gsbi12_pdata = {
 	.msm_i2c_config_gpio = gsbi_qup_i2c_gpio_config,
 };
 
-/*
-static struct ks8851_pdata spi_eth_pdata = {
-	.irq_gpio = KS8851_IRQ_GPIO,
-	.rst_gpio = KS8851_RST_GPIO,
-};
-
-static struct spi_board_info spi_board_info[] __initdata = {
-	{
-		.modalias               = "ks8851",
-		.irq                    = MSM_GPIO_TO_INT(KS8851_IRQ_GPIO),
-		.max_speed_hz           = 19200000,
-		.bus_num                = 0,
-		.chip_select            = 0,
-		.mode                   = SPI_MODE_0,
-		.platform_data		= &spi_eth_pdata
-	},
-};
-*/
 #if defined(CONFIG_MSM_CAMERA) && defined(CONFIG_RAWCHIP)
 static struct spi_board_info rawchip_spi_board_info[] __initdata = {
 	{
@@ -2934,21 +2883,6 @@ static struct platform_device msm8930_device_ext_l2_vreg __devinitdata = {
 
 #else
 
-/* 8930 Phase 2 */
-//HTC_AUD ++
-//Deleting this part because GPIO 63 is used for HTC AUXPCM DOUT.
-/*
-static struct platform_device msm8930_device_ext_5v_vreg __devinitdata = {
-	.name	= GPIO_REGULATOR_DEV_NAME,
-	.id	= 63,
-	.dev	= {
-		.platform_data =
-		     &msm8930_gpio_regulator_pdata[MSM8930_GPIO_VREG_ID_EXT_5V],
-	},
-};
-*/
-//HTC_AUD --
-
 static struct platform_device msm8930_device_ext_otg_sw_vreg __devinitdata = {
 	.name	= GPIO_REGULATOR_DEV_NAME,
 	.id	= 97,
@@ -3006,17 +2940,14 @@ static struct platform_device ram_console_device = {
 
 static struct platform_device *common_devices[] __initdata = {
 	&ram_console_device,
+	&msm8960_device_acpuclk,
 	&msm8960_device_dmov,
 	&msm_device_smd,
 	&msm8960_device_uart_gsbi3,
 	&msm8960_device_uart_gsbi8,
-	//&msm_device_uart_dm6,
+
 	&msm_device_saw_core0,
 	&msm_device_saw_core1,
-//HTC_AUD ++
-//Deleting this part because GPIO 63 is used for HTC AUXPCM DOUT.
-//	&msm8930_device_ext_5v_vreg,
-//HTC_AUD --
 #ifndef MSM8930_PHASE_2
 	&msm8930_device_ext_l2_vreg,
 #endif
@@ -3025,7 +2956,7 @@ static struct platform_device *common_devices[] __initdata = {
 	&msm8930_device_ext_otg_sw_vreg,
 #endif
 #if defined(CONFIG_MSM_CAMERA) && defined(CONFIG_RAWCHIP)
-	&k2_cl_msm_rawchip_device,
+	&k2_msm_rawchip_device,
 #endif
 	&msm_8960_q6_lpass,
 	&msm_8960_q6_mss_fw,
@@ -3105,16 +3036,13 @@ static struct platform_device *common_devices[] __initdata = {
 	&msm8960_device_cache_erp,
 	&msm8930_iommu_domain_device,
 	&msm_tsens_device,
-#ifdef CONFIG_BT /* HTC_BT add */
+#ifdef CONFIG_BT
 	&msm_device_uart_dm6,
 	&k2_cl_rfkill,
 #endif
-	&cable_detect_device,
-//HTC_AUD ++
 	&apq_cpudai_pri_i2s_rx,
 	&apq_cpudai_pri_i2s_tx,
 	&msm_cpudai_mi2s,
-//HTC_AUD --
 #ifdef CONFIG_PERFLOCK
 	&msm8960_device_perf_lock,
 #endif
@@ -3421,8 +3349,8 @@ static void __init register_i2c_devices(void)
 	struct i2c_registry msm8930_camera_i2c_devices = {
 		I2C_SURF | I2C_FFA | I2C_FLUID | I2C_LIQUID | I2C_RUMI,
 		MSM_8930_GSBI4_QUP_I2C_BUS_ID,
-		k2_cl_camera_board_info.board_info,
-		k2_cl_camera_board_info.num_i2c_board_info,
+		k2_camera_board_info.board_info,
+		k2_camera_board_info.num_i2c_board_info,
 	};
 #endif
 
@@ -3485,12 +3413,12 @@ static void __init k2_cl_init(void)
 	msm_clock_init(&msm8930_clock_init_data);
 
   /* add by htc for clock debugging */
-  clk_ignor_list_add("msm_serial_hsl.0", "core_clk");
+  clk_ignor_list_add("msm_serial_hsl.0", "core_clk", &msm8930_clock_init_data);
 	/*HTC_WIFI_START*/
 	/*Add sdc4_clk into ignore list*/
-	clk_ignor_list_add("msm_sdcc.4", "core_clk");
-	clk_ignor_list_add("msm_sdcc.4", "iface_clk");
-	clk_ignor_list_add("msm_sdcc.4", "bus_clk");
+	clk_ignor_list_add("msm_sdcc.4", "core_clk", &msm8930_clock_init_data);
+	clk_ignor_list_add("msm_sdcc.4", "iface_clk", &msm8930_clock_init_data);
+	clk_ignor_list_add("msm_sdcc.4", "bus_clk", &msm8930_clock_init_data);
 	/*HTC_WIFI_END*/
 	if (system_rev >= 0x80)
 		msm_otg_pdata.phy_init_seq = phy_init_seq_pvt;
@@ -3549,10 +3477,9 @@ static void __init k2_cl_init(void)
 #ifdef CONFIG_RAWCHIP
 	spi_register_board_info(rawchip_spi_board_info, ARRAY_SIZE(rawchip_spi_board_info));
 #endif
-	k2_cl_init_cam();
+	k2_init_cam();
 #endif
 	msm8930_init_mmc();
-	acpuclk_init(&acpuclk_8930_soc_data);
 
 	/*HTC_WIFI_START */
 	if (k2_cl_init_mmc() != 0)
@@ -3561,7 +3488,6 @@ static void __init k2_cl_init(void)
 	syn_init_vkeys_k2();
 
 	register_i2c_devices();
-	k2_init_panel();
 	/*HTC_WIFI_START */
 	k2_cl_wifi_init();
 	/*HTC_WIFI_END */
@@ -3623,5 +3549,6 @@ MACHINE_START(K2_CL, "k2_cl")
 	.init_machine = k2_cl_init,
 	.init_early = msm8930_allocate_memory_regions,
 	.init_very_early = k2_cl_early_memory,
+	.restart = msm_restart,
 MACHINE_END
 
