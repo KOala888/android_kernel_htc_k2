@@ -21,16 +21,7 @@
 #include <mach/gpiomux.h>
 #include "devices.h"
 #include "board-8930.h"
-
-#ifdef CONFIG_MACH_K2_PLC_CL
-	#include "board-k2_plc_cl.h"
-#elif defined(CONFIG_MACH_K2_CL)
-	#include "board-k2_cl.h"
-#elif defined(CONFIG_MACH_K2_UL)
-	#include "board-k2_ul.h"
-#elif defined(CONFIG_MACH_K2_U)
-	#include "board-k2_u.h"
-#endif
+#include "board-k2_cl.h"
 
 #include <linux/spi/spi.h>
 
@@ -49,10 +40,10 @@
 #define CAM_PIN_GPIO_RAW_INTR0	MSM_RAW_INTR0
 #define CAM_PIN_GPIO_RAW_INTR1	MSM_RAW_INTR1
 #define CAM_PIN_GPIO_CAM_MCLK0	MSM_CAM_MCLK0
-#define CAM_PIN_GPIO_CAM_MCLK1	MSM_CAM_MCLK1	
+#define CAM_PIN_GPIO_CAM_MCLK1	MSM_CAM_MCLK1	/*CAMIF_MCLK*/
 
-#define CAM_PIN_GPIO_CAM_I2C_DAT	MSM_CAM_I2C_SDA	
-#define CAM_PIN_GPIO_CAM_I2C_CLK	MSM_CAM_I2C_SCL	
+#define CAM_PIN_GPIO_CAM_I2C_DAT	MSM_CAM_I2C_SDA	/*CAMIF_I2C_DATA*/
+#define CAM_PIN_GPIO_CAM_I2C_CLK	MSM_CAM_I2C_SCL	/*CAMIF_I2C_CLK*/
 
 #define CAM_PIN_GPIO_MCAM_SPI_CLK	MSM_MCAM_SPI_CLK
 #define CAM_PIN_GPIO_MCAM_SPI_CS0	MSM_MCAM_SPI_CS0
@@ -62,79 +53,79 @@
 #define CAM_PIN_GPIO_CAM_VCM_PD		MSM_CAM_VCM_PD
 #define CAM_PIN_GPIO_CAM2_RSTz		MSM_CAM2_RSTz
 #define CAM_PIN_GPIO_CAM2_STANDBY	0
-#define CAM_PIN_GPIO_CAM2_SEL		MSM_CAM_SEL
+#define CAM_PIN_GPIO_CAM2_SEL		22
 #define CAM_PIN_GPIO_CAM_ID			MSM_CAM_ID
 
 
 static struct gpiomux_setting cam_settings[] = {
 	{
-		.func = GPIOMUX_FUNC_GPIO, 
+		.func = GPIOMUX_FUNC_GPIO, /*suspend - I(L) 8MA*/
 		.drv = GPIOMUX_DRV_8MA,
 		.pull = GPIOMUX_PULL_DOWN,
 		.dir = GPIOMUX_IN,
 	},
 
 	{
-		.func = GPIOMUX_FUNC_1, 
+		.func = GPIOMUX_FUNC_1, /*active 1 - A FUNC1 8MA*/
 		.drv = GPIOMUX_DRV_8MA,
 		.pull = GPIOMUX_PULL_NONE,
 	},
 
 	{
-		.func = GPIOMUX_FUNC_GPIO, 
+		.func = GPIOMUX_FUNC_GPIO, /*active 2 - O(L) 8MA*/
 		.drv = GPIOMUX_DRV_8MA,
 		.pull = GPIOMUX_PULL_NONE,
 		.dir = GPIOMUX_OUT_LOW,
 	},
 
 	{
-		.func = GPIOMUX_FUNC_1, 
+		.func = GPIOMUX_FUNC_1, /*active 3 - A FUNC1 8MA*/
 		.drv = GPIOMUX_DRV_8MA,
 		.pull = GPIOMUX_PULL_NONE,
 	},
 
 	{
-		.func = GPIOMUX_FUNC_2, 
+		.func = GPIOMUX_FUNC_2, /*active 4 - A FUNC2 8MA*/
 		.drv = GPIOMUX_DRV_8MA,
 		.pull = GPIOMUX_PULL_NONE,
 	},
 
 	{
-		.func = GPIOMUX_FUNC_GPIO, 
+		.func = GPIOMUX_FUNC_GPIO, /*active 5 - I(L) 4MA*/
 		.drv = GPIOMUX_DRV_4MA,
 		.pull = GPIOMUX_PULL_DOWN,
 		.dir = GPIOMUX_IN,
 	},
 
 	{
-		.func = GPIOMUX_FUNC_2, 
+		.func = GPIOMUX_FUNC_2, /*active 6 - A FUNC2 2MA*/
 		.drv = GPIOMUX_DRV_2MA,
 		.pull = GPIOMUX_PULL_NONE,
 	},
 
 	{
-		.func = GPIOMUX_FUNC_GPIO, 
+		.func = GPIOMUX_FUNC_GPIO, /*active 7 - I(NP) 2MA*/
 		.drv = GPIOMUX_DRV_2MA,
 		.pull = GPIOMUX_PULL_NONE,
 		.dir = GPIOMUX_IN,
 	},
 
 	{
-		.func = GPIOMUX_FUNC_GPIO, 
+		.func = GPIOMUX_FUNC_GPIO, /*active 8 - I(L) 2MA*/
 		.drv = GPIOMUX_DRV_2MA,
 		.pull = GPIOMUX_PULL_DOWN,
 		.dir = GPIOMUX_IN,
 	},
 
 	{
-		.func = GPIOMUX_FUNC_GPIO, 
+		.func = GPIOMUX_FUNC_GPIO, /*active 9 - O(H) 2MA*/
 		.drv = GPIOMUX_DRV_2MA,
 		.pull = GPIOMUX_PULL_NONE,
 		.dir = GPIOMUX_OUT_HIGH,
 	},
 
 	{
-		.func = GPIOMUX_FUNC_GPIO, 
+		.func = GPIOMUX_FUNC_GPIO, /*active 10 - O(L) 2MA*/
 		.drv = GPIOMUX_DRV_2MA,
 		.pull = GPIOMUX_PULL_NONE,
 		.dir = GPIOMUX_OUT_LOW,
@@ -144,76 +135,76 @@ static struct gpiomux_setting cam_settings[] = {
 
 static struct msm_gpiomux_config msm8930_cam_common_configs[] = {
 	{
-		.gpio = CAM_PIN_GPIO_CAM_MCLK0,	
+		.gpio = CAM_PIN_GPIO_CAM_MCLK0,	// 5
 		.settings = {
-			[GPIOMUX_ACTIVE]    = &cam_settings[1], 
-			[GPIOMUX_SUSPENDED] = &cam_settings[2], 
+			[GPIOMUX_ACTIVE]    = &cam_settings[1], /*A FUNC1 8MA*/
+			[GPIOMUX_SUSPENDED] = &cam_settings[2], /*O(L) 8MA*/
 		},
 	},
 	{
-		.gpio = CAM_PIN_GPIO_CAM_MCLK1,	
+		.gpio = CAM_PIN_GPIO_CAM_MCLK1,	// 4
 		.settings = {
-			[GPIOMUX_ACTIVE]    = &cam_settings[4], 
-			[GPIOMUX_SUSPENDED] = &cam_settings[2], 
+			[GPIOMUX_ACTIVE]    = &cam_settings[4], /*A FUNC2 8MA*/
+			[GPIOMUX_SUSPENDED] = &cam_settings[2], /*O(L) 8MA*/
 		},
 	},
 
-	
+	/* I2C gsbi 4 */
 	{
-		.gpio = CAM_PIN_GPIO_CAM_I2C_DAT,	
+		.gpio = CAM_PIN_GPIO_CAM_I2C_DAT,	// 20
 		.settings = {
-			[GPIOMUX_ACTIVE]    = &cam_settings[3], 
+			[GPIOMUX_ACTIVE]    = &cam_settings[3], /*A FUNC1 8MA*/
 			[GPIOMUX_SUSPENDED] = &cam_settings[0],
 		},
 	},
 	{
-		.gpio = CAM_PIN_GPIO_CAM_I2C_CLK,	
+		.gpio = CAM_PIN_GPIO_CAM_I2C_CLK,	// 21
 		.settings = {
-			[GPIOMUX_ACTIVE]    = &cam_settings[3], 
+			[GPIOMUX_ACTIVE]    = &cam_settings[3], /*A FUNC1 8MA*/
 			[GPIOMUX_SUSPENDED] = &cam_settings[0],
 		},
 	},
 	{
-		.gpio = CAM_PIN_GPIO_RAW_INTR0,	
+		.gpio = CAM_PIN_GPIO_RAW_INTR0,	// 69
 		.settings = {
-			[GPIOMUX_ACTIVE]    = &cam_settings[7], 
-			[GPIOMUX_SUSPENDED] = &cam_settings[8], 
+			[GPIOMUX_ACTIVE]    = &cam_settings[7], /*I(NP) 2MA*/
+			[GPIOMUX_SUSPENDED] = &cam_settings[8], /*I(L) 2MA*/
 		},
 	},
 	{
-		.gpio = CAM_PIN_GPIO_RAW_INTR1,	
+		.gpio = CAM_PIN_GPIO_RAW_INTR1,	// 50
 		.settings = {
-			[GPIOMUX_ACTIVE]    = &cam_settings[7], 
-			[GPIOMUX_SUSPENDED] = &cam_settings[8], 
+			[GPIOMUX_ACTIVE]    = &cam_settings[7], /*I(NP) 2MA*/
+			[GPIOMUX_SUSPENDED] = &cam_settings[8], /*I(L) 2MA*/
 		},
 	},
-	
+	/* gpio config for Rawchip SPI - gsbi10 */
 	{
 		.gpio      = CAM_PIN_GPIO_MCAM_SPI_CLK,
 		.settings = {
-			[GPIOMUX_ACTIVE] = &cam_settings[4], 
-			[GPIOMUX_SUSPENDED] = &cam_settings[2], 
+			[GPIOMUX_ACTIVE] = &cam_settings[4], /*A FUNC2 8MA*/
+			[GPIOMUX_SUSPENDED] = &cam_settings[2], /*O(L) 8MA*/
 		},
 	},
 	{
 		.gpio      = CAM_PIN_GPIO_MCAM_SPI_CS0,
 		.settings = {
-			[GPIOMUX_ACTIVE] = &cam_settings[6], 
-			[GPIOMUX_SUSPENDED] = &cam_settings[10], 
+			[GPIOMUX_ACTIVE] = &cam_settings[6], /*A FUNC2 2MA*/
+			[GPIOMUX_SUSPENDED] = &cam_settings[10], /* O(L) 2MA*/
 		},
 	},
 	{
 		.gpio      = CAM_PIN_GPIO_MCAM_SPI_DI,
 		.settings = {
-			[GPIOMUX_ACTIVE] = &cam_settings[4], 
-			[GPIOMUX_SUSPENDED] = &cam_settings[0], 
+			[GPIOMUX_ACTIVE] = &cam_settings[4], /*A FUNC2 8MA*/
+			[GPIOMUX_SUSPENDED] = &cam_settings[0], /* I(L) 8MA*/
 		},
 	},
 	{
 		.gpio      = CAM_PIN_GPIO_MCAM_SPI_DO,
 		.settings = {
-			[GPIOMUX_ACTIVE] = &cam_settings[4], 
-			[GPIOMUX_SUSPENDED] = &cam_settings[2], 
+			[GPIOMUX_ACTIVE] = &cam_settings[4], /*A FUNC2 8MA*/
+			[GPIOMUX_SUSPENDED] = &cam_settings[2], /*O(L) 8MA*/
 		},
 	},
 };
@@ -223,6 +214,13 @@ static struct msm_gpiomux_config msm8930_cam_common_configs[] = {
 #define VFE_CAMIF_TIMER2_GPIO 1
 
 #ifdef CONFIG_MSM_CAMERA_FLASH
+/*
+static struct msm_camera_sensor_flash_src msm_flash_src = {
+	.flash_sr_type = MSM_CAMERA_FLASH_SRC_EXT,
+	._fsrc.ext_driver_src.led_en = VFE_CAMIF_TIMER1_GPIO,
+	._fsrc.ext_driver_src.led_flash_en = VFE_CAMIF_TIMER2_GPIO,
+};
+*/
 #endif
 #endif
 
@@ -372,18 +370,18 @@ static int msm8930_rawchip_vreg_on(void)
 	int rc = 0;
 	pr_info("[CAM] %s\n", __func__);
 
-	
+	/* V_RAW_1V8 */
 	rc = gpio_request(CAM_PIN_GPIO_V_RAW_1V8_EN, "V_RAW_1V8_EN");
 	pr_info("[CAM] rawchip 1v8 gpio_request, %d rc(%d)\n", CAM_PIN_GPIO_V_RAW_1V8_EN, rc);
-	if (rc < 0) 
+	if (rc < 0) //{
 		pr_err("[CAM] rawchip on (\"gpio %d\", 1.8V) FAILED", CAM_PIN_GPIO_V_RAW_1V8_EN);
-		
-	
+		//goto enable_rawchip_1v8_fail;
+	//}
 	gpio_direction_output(CAM_PIN_GPIO_V_RAW_1V8_EN, 1);
 	gpio_free(CAM_PIN_GPIO_V_RAW_1V8_EN);
 	mdelay(1);
 
-	
+	/* V_RAW_1V2 */
 	rc = gpio_request(CAM_PIN_GPIO_V_RAW_1V2_EN, "_V_RAW_1V2_EN");
 	pr_info("[CAM] rawchip 1v2 gpio_request, %d rc(%d)\n", CAM_PIN_GPIO_V_RAW_1V2_EN, rc);
 	if (rc < 0) {
@@ -403,6 +401,7 @@ enable_rawchip_1v2_fail:
 		gpio_direction_output(CAM_PIN_GPIO_V_RAW_1V8_EN, 0);
 		gpio_free(CAM_PIN_GPIO_V_RAW_1V8_EN);
 	}
+//enable_rawchip_1v8_fail:
 	return rc;
 
 }
@@ -434,31 +433,31 @@ static int msm8930_rawchip_vreg_off(void)
 	return rc;
 }
 
-static struct msm_camera_rawchip_info k2_msm_rawchip_board_info = {
+static struct msm_camera_rawchip_info k2_cl_msm_rawchip_board_info = {
 	.rawchip_reset	= CAM_PIN_GPIO_RAW_RSTN,
-	.rawchip_intr0	= MSM_GPIO_TO_INT(CAM_PIN_GPIO_RAW_INTR0),
-	.rawchip_intr1	= MSM_GPIO_TO_INT(CAM_PIN_GPIO_RAW_INTR1),
-	.rawchip_spi_freq = 27, 
-	.rawchip_mclk_freq = 24, 
+	.rawchip_intr0	= CAM_PIN_GPIO_RAW_INTR0,
+	.rawchip_intr1	= CAM_PIN_GPIO_RAW_INTR1,
+	.rawchip_spi_freq = 27, /* MHz, should be the same to spi max_speed_hz */
+	.rawchip_mclk_freq = 24, /* MHz, should be the same as cam csi0 mclk_clk_rate */
 	.camera_rawchip_power_on = msm8930_rawchip_vreg_on,
 	.camera_rawchip_power_off = msm8930_rawchip_vreg_off,
 	.rawchip_use_ext_1v2 = msm8930_use_ext_1v2,
 };
 
-struct platform_device k2_msm_rawchip_device = {
+struct platform_device k2_cl_msm_rawchip_device = {
 	.name	= "rawchip",
 	.dev	= {
-		.platform_data = &k2_msm_rawchip_board_info,
+		.platform_data = &k2_cl_msm_rawchip_board_info,
 	},
 };
 #endif
 
 static uint16_t msm_cam_gpio_tbl[] = {
-	CAM_PIN_GPIO_CAM_MCLK0, 
+	CAM_PIN_GPIO_CAM_MCLK0, /*CAMIF_MCLK*/
 	CAM_PIN_GPIO_CAM_MCLK1,
 #if 0
-	CAM_PIN_GPIO_CAM_I2C_DAT, 
-	CAM_PIN_GPIO_CAM_I2C_CLK, 
+	CAM_PIN_GPIO_CAM_I2C_DAT, /*CAMIF_I2C_DATA*/
+	CAM_PIN_GPIO_CAM_I2C_CLK, /*CAMIF_I2C_CLK*/
 #endif
 	CAM_PIN_GPIO_RAW_INTR0,
 	CAM_PIN_GPIO_RAW_INTR1,
@@ -589,7 +588,7 @@ static int msm8930_s5k4e5yx_vreg_on(void)
 	int rc;
 	pr_info("[CAM] %s\n", __func__);
 
-	
+	/* VCM */
 	rc = camera_sensor_power_enable("8038_l17", 2800000, &reg_8038_l17);
 	pr_info("[CAM] vcm sensor_power_enable(\"8038_l17\", 2.8V) == %d\n", rc);
 	if (rc < 0) {
@@ -598,7 +597,7 @@ static int msm8930_s5k4e5yx_vreg_on(void)
 	}
 	udelay(50);
 
-	
+	/* digital */
 	rc = gpio_request(CAM_PIN_GPIO_V_CAM_D1V8_EN, "V_CAM_D1V8_EN");
 	pr_info("[CAM] digital gpio_request, %d\n", CAM_PIN_GPIO_V_CAM_D1V8_EN);
 	if (rc < 0) {
@@ -613,7 +612,7 @@ static int msm8930_s5k4e5yx_vreg_on(void)
 	gpio_free(CAM_PIN_GPIO_V_CAM_D1V8_EN);
 	udelay(50);
 
-	
+	/* analog */
 	rc = camera_sensor_power_enable("8038_l8", 2800000, &reg_8038_l8);
 	pr_info("[CAM] analog sensor_power_enable(\"8038_l8\", 2.8V) == %d\n", rc);
 	if (rc < 0) {
@@ -622,7 +621,7 @@ static int msm8930_s5k4e5yx_vreg_on(void)
 	}
 	udelay(50);
 
-	
+	/* IO */
 	rc = gpio_request(CAM_PIN_GPIO_V_CAMIO_1V8_EN, "V_CAMIO_1V8_EN");
 	pr_info("[CAM] cam io gpio_request, %d\n", CAM_PIN_GPIO_V_CAMIO_1V8_EN);
 	if (rc < 0) {
@@ -657,14 +656,14 @@ static int msm8930_s5k4e5yx_vreg_off(void)
 
 	pr_info("[CAM] %s\n", __func__);
 
-	
+	/* analog */
 	rc = camera_sensor_power_disable(reg_8038_l8);
 	pr_info("[CAM] sensor_power_disable(\"8038_l8\") == %d\n", rc);
 	if (rc < 0)
 		pr_err("[CAM] sensor_power_disable\(\"8038_l8\") FAILED %d\n", rc);
 	udelay(50);
 
-	
+	/* digital */
 	rc = gpio_request(CAM_PIN_GPIO_V_CAM_D1V8_EN, "V_CAM_D1V8_EN");
 	pr_info("[CAM] digital gpio_request, %d\n", CAM_PIN_GPIO_V_CAM_D1V8_EN);
 	if (rc < 0)
@@ -678,7 +677,7 @@ static int msm8930_s5k4e5yx_vreg_off(void)
 	}
 	udelay(900);
 
-	
+	/* IO */
 	rc = gpio_request(CAM_PIN_GPIO_V_CAMIO_1V8_EN, "V_CAMIO_1V8_EN");
 	pr_info("[CAM] cam io gpio_request, %d\n", CAM_PIN_GPIO_V_CAMIO_1V8_EN);
 	if (rc < 0)
@@ -689,7 +688,7 @@ static int msm8930_s5k4e5yx_vreg_off(void)
 	}
 	udelay(50);
 
-	
+	/* VCM */
 	if (reg_8038_l17 != NULL)
 		regulator_set_optimum_mode(reg_8038_l17, 9000);
 	rc = camera_sensor_power_disable(reg_8038_l17);
@@ -729,13 +728,29 @@ static struct msm_camera_sensor_platform_info sensor_s5k4e5yx_board_info = {
 	.csi_lane_params = &s5k4e5yx_csi_lane_params,
 };
 
+/* Andrew_Cheng linear led 20111205 MB */
+//150 mA FL_MODE_FLASH_LEVEL1
+//200 mA FL_MODE_FLASH_LEVEL2
+//300 mA FL_MODE_FLASH_LEVEL3
+//400 mA FL_MODE_FLASH_LEVEL4
+//500 mA FL_MODE_FLASH_LEVEL5
+//600 mA FL_MODE_FLASH_LEVEL6
+//700 mA FL_MODE_FLASH_LEVEL7
 static struct camera_led_est msm_camera_sensor_s5k4e5yx_led_table[] = {
+	/*{
+		.enable = 0,
+		.led_state = FL_MODE_FLASH_LEVEL1,
+		.current_ma = 150,
+		.lumen_value = 150,
+		.min_step = 50,
+		.max_step = 70
+	},*/
 	{
 		.enable = 1,
 		.led_state = FL_MODE_FLASH_LEVEL2,
 		.current_ma = 200,
-		.lumen_value = 250,
-		.min_step = 29,
+		.lumen_value = 250,//245,//240,   //mk0118
+		.min_step = 29,//23,  //mk0210
 		.max_step = 128				
 	},
 	{
@@ -754,6 +769,14 @@ static struct camera_led_est msm_camera_sensor_s5k4e5yx_led_table[] = {
 		.min_step = 25,
 		.max_step = 26
 	},
+	/*{
+		.enable = 0,
+		.led_state = FL_MODE_FLASH_LEVEL5,
+		.current_ma = 500,
+		.lumen_value = 500,
+		.min_step = 23,//25,
+		.max_step = 29//26,
+	},*/
 	{
 		.enable = 1,
 		.led_state = FL_MODE_FLASH_LEVEL6,
@@ -763,19 +786,27 @@ static struct camera_led_est msm_camera_sensor_s5k4e5yx_led_table[] = {
 		.max_step = 24
 	},
 
+	/*{
+		.enable = 0,
+		.led_state = FL_MODE_FLASH_LEVEL7,
+		.current_ma = 700,
+		.lumen_value = 700,
+		.min_step = 21,
+		.max_step = 22
+	},*/
 	{
 		.enable = 1,
 		.led_state = FL_MODE_FLASH,
 		.current_ma = 750,
-		.lumen_value = 745,
+		.lumen_value = 745,//725,   //mk0217  //mk0221
 		.min_step = 0,
-		.max_step = 22    
+		.max_step = 22    //mk0210
 	},
 	{
 		.enable = 2,
 		.led_state = FL_MODE_FLASH_LEVEL2,
 		.current_ma = 200,
-		.lumen_value = 250,
+		.lumen_value = 250,//245,
 		.min_step = 0,
 		.max_step = 270
 	},
@@ -796,12 +827,12 @@ static struct camera_led_est msm_camera_sensor_s5k4e5yx_led_table[] = {
 		.max_step = 0
 	},
 	{
-		.enable = 2,     
+		.enable = 2,     //mk0210
 		.led_state = FL_MODE_FLASH,
 		.current_ma = 750,
-		.lumen_value = 745,
+		.lumen_value = 745,//725,   //mk0217   //mk0221
 		.min_step = 271,
-		.max_step = 317    
+		.max_step = 317    //mk0210
 	},
 	{
 		.enable = 0,
@@ -812,10 +843,10 @@ static struct camera_led_est msm_camera_sensor_s5k4e5yx_led_table[] = {
 		.max_step = 26
 	},
 	{
-		.enable = 0,
+		.enable = 0,//3,  //mk0210
 		.led_state = FL_MODE_FLASH,
 		.current_ma = 750,
-		.lumen_value = 750,
+		.lumen_value = 750,//740,//725,
 		.min_step = 271,
 		.max_step = 325
 	},
@@ -833,7 +864,7 @@ static struct camera_led_est msm_camera_sensor_s5k4e5yx_led_table[] = {
 static struct camera_led_info msm_camera_sensor_s5k4e5yx_led_info = {
 	.enable = 1,
 	.low_limit_led_state = FL_MODE_TORCH,
-	.max_led_current_ma = 750,  
+	.max_led_current_ma = 750,  //mk0210
 	.num_led_est_table = ARRAY_SIZE(msm_camera_sensor_s5k4e5yx_led_table),
 };
 
@@ -847,9 +878,10 @@ static struct camera_flash_cfg msm_camera_sensor_s5k4e5yx_flash_cfg = {
 	.low_cap_limit		= 15,
 	.flash_info			= &msm_camera_sensor_s5k4e5yx_flash_info,
 };
+/* Andrew_Cheng linear led 20111205 ME */
 
 #ifdef CONFIG_MSM_CAMERA_FLASH
-int msm8930_flashlight_control_s5k4e5yx(int mode)
+int msm8930_flashlight_control(int mode)
 {
 	pr_info("[CAM] %s, linear led, mode=%d", __func__, mode);
 #ifdef CONFIG_FLASHLIGHT_TPS61310
@@ -859,16 +891,16 @@ int msm8930_flashlight_control_s5k4e5yx(int mode)
 #endif
 }
 
-static struct msm_camera_sensor_flash_src msm_camera_flash_src_s5k4e5yx = {
+static struct msm_camera_sensor_flash_src msm_camera_flash_src = {
 	.flash_sr_type = MSM_CAMERA_FLASH_SRC_CURRENT_DRIVER,
-	.camera_flash = msm8930_flashlight_control_s5k4e5yx,
+	.camera_flash = msm8930_flashlight_control,
 };
 #endif
 
 static struct msm_camera_sensor_flash_data flash_s5k4e5yx = {
 	.flash_type	= MSM_CAMERA_FLASH_LED,
 #ifdef CONFIG_MSM_CAMERA_FLASH
-	.flash_src	= &msm_camera_flash_src_s5k4e5yx,
+	.flash_src	= &msm_camera_flash_src,
 #endif
 
 };
@@ -888,10 +920,10 @@ static struct msm_camera_sensor_info msm_camera_sensor_s5k4e5yx_data = {
 	.actuator_info = &s5k4e5yx_actuator_info,
 #endif
 	.use_rawchip = 1,
-	.flash_cfg = &msm_camera_sensor_s5k4e5yx_flash_cfg, 
+	.flash_cfg = &msm_camera_sensor_s5k4e5yx_flash_cfg, /* Andrew_Cheng linear led 20111205 */
 };
 
-#endif	
+#endif	//CONFIG_S5K4E5YX
 
 #ifdef CONFIG_S5K6A1GX
 static int msm8930_s5k6a1gx_vreg_on(void)
@@ -899,7 +931,7 @@ static int msm8930_s5k6a1gx_vreg_on(void)
 	int rc;
 	pr_info("[CAM] %s\n", __func__);
 
-	
+	/* VCM */
 	rc = camera_sensor_power_enable("8038_l17", 2800000, &reg_8038_l17);
 	pr_info("[CAM] sensor_power_enable(\"8038_l17\", 2.8V) == %d\n", rc);
 	if (rc < 0) {
@@ -908,7 +940,7 @@ static int msm8930_s5k6a1gx_vreg_on(void)
 	}
 	udelay(50);
 
-	
+	/* digital */
 	rc = gpio_request(CAM_PIN_GPIO_V_CAM_D1V8_EN, "V_CAM_D1V8_EN");
 	pr_info("[CAM] digital gpio_request, %d\n", CAM_PIN_GPIO_V_CAM_D1V8_EN);
 	if (rc < 0) {
@@ -922,7 +954,7 @@ static int msm8930_s5k6a1gx_vreg_on(void)
 	gpio_free(CAM_PIN_GPIO_V_CAM_D1V8_EN);
 
 
-	 
+	/* VCM PD */ /* TODO */
 	rc = gpio_request(CAM_PIN_GPIO_CAM_VCM_PD, "CAM_VCM_PD");
 	pr_info("[CAM] vcm pd gpio_request, %d\n", CAM_PIN_GPIO_CAM_VCM_PD);
 	if (rc < 0 && rc != -EBUSY) {
@@ -935,7 +967,7 @@ static int msm8930_s5k6a1gx_vreg_on(void)
 
 	udelay(500);
 
-	
+	/* analog */
 	rc = camera_sensor_power_enable("8038_l8", 2800000, &reg_8038_l8);
 	pr_info("[CAM] sensor_power_enable(\"8038_l8\", 2.8V) == %d\n", rc);
 	if (rc < 0) {
@@ -944,7 +976,7 @@ static int msm8930_s5k6a1gx_vreg_on(void)
 	}
 	udelay(50);
 
-	
+	/* IO */
 	rc = gpio_request(CAM_PIN_GPIO_V_CAMIO_1V8_EN, "V_CAMIO_1V8_EN");
 	pr_info("[CAM] cam io gpio_request, %d\n", CAM_PIN_GPIO_V_CAMIO_1V8_EN);
 	if (rc < 0) {
@@ -955,7 +987,7 @@ static int msm8930_s5k6a1gx_vreg_on(void)
 	gpio_free(CAM_PIN_GPIO_V_CAMIO_1V8_EN);
 	udelay(50);
 
-	
+	/* reset pin */
 	rc = gpio_request(CAM_PIN_GPIO_CAM2_RSTz, "s5k6a1gx");
 	pr_info("[CAM] reset pin gpio_request, %d\n", CAM_PIN_GPIO_CAM2_RSTz);
 	if (rc < 0) {
@@ -966,7 +998,7 @@ static int msm8930_s5k6a1gx_vreg_on(void)
 	gpio_free(CAM_PIN_GPIO_CAM2_RSTz);
 	udelay(50);
 
-	
+	/* 2nd cam digital */
 	rc = gpio_request(CAM_PIN_GPIO_V_CAM2_D1V2_EN, "V_CAM2_D1V2_EN");
 	pr_info("[CAM] 2nd cam digital gpio_request, %d\n", CAM_PIN_GPIO_V_CAM2_D1V2_EN);
 	if (rc < 0) {
@@ -1027,13 +1059,13 @@ static int msm8930_s5k6a1gx_vreg_off(void)
 	int rc = 0;
 	pr_info("[CAM] %s\n", __func__);
 
-	
+	/* analog */
 	pr_info("[CAM] sensor_power_disable(\"8038_l8\") == %d\n", rc);
 	rc = camera_sensor_power_disable(reg_8038_l8);
 	if (rc < 0)
 		pr_err("[CAM] sensor_power_disable(\"reg_8038_l8\") FAILED %d\n", rc);
 
-	
+	/* reset pin */
 	rc = gpio_request(CAM_PIN_GPIO_CAM2_RSTz, "s5k6a1gx");
 	pr_info("[CAM] reset pin gpio_request, %d\n", CAM_PIN_GPIO_CAM2_RSTz);
 	if (rc < 0)
@@ -1044,7 +1076,7 @@ static int msm8930_s5k6a1gx_vreg_off(void)
 	}
 	udelay(50);
 
-	
+	/* 2nd digital */
 	rc = gpio_request(CAM_PIN_GPIO_V_CAM2_D1V2_EN, "V_CAM2_D1V2_EN");
 	pr_info("[CAM] 2nd cam digital gpio_request, %d\n", CAM_PIN_GPIO_V_CAM2_D1V2_EN);
 	if (rc < 0)
@@ -1055,7 +1087,7 @@ static int msm8930_s5k6a1gx_vreg_off(void)
 	}
 	msleep(1);
 
-	
+	/* digital */
 	rc = gpio_request(CAM_PIN_GPIO_V_CAM_D1V8_EN, "V_CAM_D1V8_EN");
 	pr_info("[CAM] digital gpio_request, %d\n", CAM_PIN_GPIO_V_CAM_D1V8_EN);
 	if (rc < 0)
@@ -1069,7 +1101,7 @@ static int msm8930_s5k6a1gx_vreg_off(void)
 	}
 	udelay(50);
 
-	
+	/* IO */
 	rc = gpio_request(CAM_PIN_GPIO_V_CAMIO_1V8_EN, "V_CAMIO_1V8_EN");
 	pr_info("[CAM] cam io gpio_request, %d\n", CAM_PIN_GPIO_V_CAMIO_1V8_EN);
 	if (rc < 0)
@@ -1079,7 +1111,7 @@ static int msm8930_s5k6a1gx_vreg_off(void)
 		gpio_free(CAM_PIN_GPIO_V_CAMIO_1V8_EN);
 	}
 
-	 
+	/* VCM PD */ /* TODO */
 	rc = gpio_request(CAM_PIN_GPIO_CAM_VCM_PD, "CAM_VCM_PD");
 	pr_info("[CAM] vcm pd gpio_request, %d\n", CAM_PIN_GPIO_CAM_VCM_PD);
 	if (rc < 0 && rc != -EBUSY) {
@@ -1091,7 +1123,7 @@ static int msm8930_s5k6a1gx_vreg_off(void)
 	}
 	udelay(50);
 
-	
+	/* VCM */
 	pr_info("[CAM] sensor_power_disable(\"reg_8038_l17\") == %d\n", rc);
 	rc = camera_sensor_power_disable(reg_8038_l17);
 	if (rc < 0)
@@ -1136,7 +1168,7 @@ static struct msm_camera_sensor_info msm_camera_sensor_s5k6a1gx_data = {
 	.camera_type = FRONT_CAMERA_2D,
 	.use_rawchip = 0,
 };
-#endif	
+#endif	//CONFIG_S5K6A1GX
 
 #ifdef CONFIG_OV5693_ACT
 static struct i2c_board_info ov5693_actuator_i2c_info = {
@@ -1157,7 +1189,7 @@ static int msm8930_ov5693_vreg_on(void)
 	int rc;
 	pr_info("[CAM] %s\n", __func__);
 
-	
+	/* VCM */
 	rc = camera_sensor_power_enable("8038_l17", 2800000, &reg_8038_l17);
 	pr_info("[CAM] vcm sensor_power_enable(\"8038_l17\", 2.8V) == %d\n", rc);
 	if (rc < 0) {
@@ -1166,7 +1198,7 @@ static int msm8930_ov5693_vreg_on(void)
 	}
 	udelay(50);
 
-	
+	/* digital */
 	rc = gpio_request(CAM_PIN_GPIO_V_CAM_D1V8_EN, "V_CAM_D1V8_EN");
 	pr_info("[CAM] digital gpio_request, %d\n", CAM_PIN_GPIO_V_CAM_D1V8_EN);
 	if (rc < 0) {
@@ -1181,7 +1213,7 @@ static int msm8930_ov5693_vreg_on(void)
 	gpio_free(CAM_PIN_GPIO_V_CAM_D1V8_EN);
 	udelay(50);
 
-	
+	/* analog */
 	rc = camera_sensor_power_enable("8038_l8", 2800000, &reg_8038_l8);
 	pr_info("[CAM] analog sensor_power_enable(\"8038_l8\", 2.8V) == %d\n", rc);
 	if (rc < 0) {
@@ -1190,7 +1222,7 @@ static int msm8930_ov5693_vreg_on(void)
 	}
 	mdelay(2);
 
-	
+	/* IO */
 	rc = gpio_request(CAM_PIN_GPIO_V_CAMIO_1V8_EN, "V_CAMIO_1V8_EN");
 	pr_info("[CAM] cam io gpio_request, %d\n", CAM_PIN_GPIO_V_CAMIO_1V8_EN);
 	if (rc < 0) {
@@ -1225,14 +1257,14 @@ static int msm8930_ov5693_vreg_off(void)
 
 	pr_info("[CAM] %s\n", __func__);
 
-	
+	/* analog */
 	rc = camera_sensor_power_disable(reg_8038_l8);
 	pr_info("[CAM] sensor_power_disable(\"8038_l8\") == %d\n", rc);
 	if (rc < 0)
 		pr_err("[CAM] sensor_power_disable\(\"8038_l8\") FAILED %d\n", rc);
 	udelay(50);
 
-	
+	/* digital */
 	rc = gpio_request(CAM_PIN_GPIO_V_CAM_D1V8_EN, "V_CAM_D1V8_EN");
 	pr_info("[CAM] digital gpio_request, %d\n", CAM_PIN_GPIO_V_CAM_D1V8_EN);
 	if (rc < 0)
@@ -1246,7 +1278,7 @@ static int msm8930_ov5693_vreg_off(void)
 	}
 	udelay(900);
 
-	
+	/* IO */
 	rc = gpio_request(CAM_PIN_GPIO_V_CAMIO_1V8_EN, "V_CAMIO_1V8_EN");
 	pr_info("[CAM] cam io gpio_request, %d\n", CAM_PIN_GPIO_V_CAMIO_1V8_EN);
 	if (rc < 0)
@@ -1257,7 +1289,7 @@ static int msm8930_ov5693_vreg_off(void)
 	}
 	mdelay(1);
 
-	
+	/* VCM */
 	if (reg_8038_l17 != NULL)
 		regulator_set_optimum_mode(reg_8038_l17, 9000);
 	rc = camera_sensor_power_disable(reg_8038_l17);
@@ -1284,13 +1316,29 @@ static struct msm_camera_sensor_platform_info sensor_ov5693_board_info = {
 	.csi_lane_params = &ov5693_csi_lane_params,
 };
 
+/* Andrew_Cheng linear led 20111205 MB */
+//150 mA FL_MODE_FLASH_LEVEL1
+//200 mA FL_MODE_FLASH_LEVEL2
+//300 mA FL_MODE_FLASH_LEVEL3
+//400 mA FL_MODE_FLASH_LEVEL4
+//500 mA FL_MODE_FLASH_LEVEL5
+//600 mA FL_MODE_FLASH_LEVEL6
+//700 mA FL_MODE_FLASH_LEVEL7
 static struct camera_led_est msm_camera_sensor_ov5693_led_table[] = {
+	/*{
+		.enable = 0,
+		.led_state = FL_MODE_FLASH_LEVEL1,
+		.current_ma = 150,
+		.lumen_value = 150,
+		.min_step = 50,
+		.max_step = 70
+	},*/
 	{
 		.enable = 1,
 		.led_state = FL_MODE_FLASH_LEVEL2,
 		.current_ma = 200,
-		.lumen_value = 250,
-		.min_step = 29,
+		.lumen_value = 250,//245,//240,   //mk0118
+		.min_step = 29,//23,  //mk0210
 		.max_step = 128
 	},
 	{
@@ -1309,6 +1357,14 @@ static struct camera_led_est msm_camera_sensor_ov5693_led_table[] = {
 		.min_step = 25,
 		.max_step = 26
 	},
+	/*{
+		.enable = 0,
+		.led_state = FL_MODE_FLASH_LEVEL5,
+		.current_ma = 500,
+		.lumen_value = 500,
+		.min_step = 23,//25,
+		.max_step = 29//26,
+	},*/
 	{
 		.enable = 1,
 		.led_state = FL_MODE_FLASH_LEVEL6,
@@ -1318,19 +1374,27 @@ static struct camera_led_est msm_camera_sensor_ov5693_led_table[] = {
 		.max_step = 24
 	},
 
+	/*{
+		.enable = 0,
+		.led_state = FL_MODE_FLASH_LEVEL7,
+		.current_ma = 700,
+		.lumen_value = 700,
+		.min_step = 21,
+		.max_step = 22
+	},*/
 	{
 		.enable = 1,
 		.led_state = FL_MODE_FLASH,
 		.current_ma = 750,
-		.lumen_value = 745,
+		.lumen_value = 745,//725,   //mk0217  //mk0221
 		.min_step = 0,
-		.max_step = 22    
+		.max_step = 22    //mk0210
 	},
 	{
 		.enable = 2,
 		.led_state = FL_MODE_FLASH_LEVEL2,
 		.current_ma = 200,
-		.lumen_value = 250,
+		.lumen_value = 250,//245,
 		.min_step = 0,
 		.max_step = 270
 	},
@@ -1351,12 +1415,12 @@ static struct camera_led_est msm_camera_sensor_ov5693_led_table[] = {
 		.max_step = 0
 	},
 	{
-		.enable = 2,     
+		.enable = 2,     //mk0210
 		.led_state = FL_MODE_FLASH,
 		.current_ma = 750,
-		.lumen_value = 745,
+		.lumen_value = 745,//725,   //mk0217   //mk0221
 		.min_step = 271,
-		.max_step = 317    
+		.max_step = 317    //mk0210
 	},
 	{
 		.enable = 0,
@@ -1367,10 +1431,10 @@ static struct camera_led_est msm_camera_sensor_ov5693_led_table[] = {
 		.max_step = 26
 	},
 	{
-		.enable = 0,
+		.enable = 0,//3,  //mk0210
 		.led_state = FL_MODE_FLASH,
 		.current_ma = 750,
-		.lumen_value = 750,
+		.lumen_value = 750,//740,//725,
 		.min_step = 271,
 		.max_step = 325
 	},
@@ -1387,7 +1451,7 @@ static struct camera_led_est msm_camera_sensor_ov5693_led_table[] = {
 static struct camera_led_info msm_camera_sensor_ov5693_led_info = {
 	.enable = 1,
 	.low_limit_led_state = FL_MODE_TORCH,
-	.max_led_current_ma = 750,  
+	.max_led_current_ma = 750,  //mk0210
 	.num_led_est_table = ARRAY_SIZE(msm_camera_sensor_ov5693_led_table),
 };
 
@@ -1401,27 +1465,13 @@ static struct camera_flash_cfg msm_camera_sensor_ov5693_flash_cfg = {
 	.low_cap_limit		= 15,
 	.flash_info			= &msm_camera_sensor_ov5693_flash_info,
 };
+/* Andrew_Cheng linear led 20111205 ME */
 
 #ifdef CONFIG_MSM_CAMERA_FLASH
-int msm8930_flashlight_control_ov5693(int mode)
-{
-	pr_info("[CAM] %s, linear led, mode=%d", __func__, mode);
-#ifdef CONFIG_FLASHLIGHT_TPS61310
-	return tps61310_flashlight_control(mode);
-#else
-	return 0;
-#endif
-}
-
-static struct msm_camera_sensor_flash_src msm_camera_flash_src_ov5693 = {
-	.flash_sr_type = MSM_CAMERA_FLASH_SRC_CURRENT_DRIVER,
-	.camera_flash = msm8930_flashlight_control_ov5693,
-};
-
 static struct msm_camera_sensor_flash_data flash_ov5693 = {
 	.flash_type	= MSM_CAMERA_FLASH_LED,
 #ifdef CONFIG_MSM_CAMERA_FLASH
-	.flash_src	= &msm_camera_flash_src_ov5693,
+	.flash_src	= &msm_camera_flash_src,
 #endif
 
 };
@@ -1442,10 +1492,10 @@ static struct msm_camera_sensor_info msm_camera_sensor_ov5693_data = {
 	.actuator_info = &ov5693_actuator_info,
 #endif
 	.use_rawchip = 1,
-	.flash_cfg = &msm_camera_sensor_ov5693_flash_cfg, 
+	.flash_cfg = &msm_camera_sensor_ov5693_flash_cfg, /* Andrew_Cheng linear led 20111205 */
 };
 
-#endif	
+#endif	//CONFIG_OV5693
 
 #ifdef CONFIG_S5K6A2YA
 static int msm8930_s5k6a2ya_vreg_on(void)
@@ -1453,7 +1503,7 @@ static int msm8930_s5k6a2ya_vreg_on(void)
 	int rc;
 	pr_info("[CAM] %s\n", __func__);
 
-	
+	/* MIPI Switch */
 	rc = gpio_request(CAM_PIN_GPIO_CAM2_SEL, "CAM2_SEL");
 	pr_info("[CAM] cam sel gpio_request, %d\n", CAM_PIN_GPIO_CAM2_SEL);
 	if (rc < 0) {
@@ -1463,7 +1513,7 @@ static int msm8930_s5k6a2ya_vreg_on(void)
 	gpio_free(CAM_PIN_GPIO_CAM2_SEL);
 	udelay(50);
 
-	
+	/* VCM */
 	rc = camera_sensor_power_enable("8038_l17", 2800000, &reg_8038_l17);
 	pr_info("[CAM] sensor_power_enable(\"8038_l17\", 2.8V) == %d\n", rc);
 	if (rc < 0) {
@@ -1472,7 +1522,7 @@ static int msm8930_s5k6a2ya_vreg_on(void)
 	}
 	udelay(50);
 
-	
+	/* digital */
 	rc = gpio_request(CAM_PIN_GPIO_V_CAM_D1V8_EN, "V_CAM_D1V8_EN");
 	pr_info("[CAM] digital gpio_request, %d\n", CAM_PIN_GPIO_V_CAM_D1V8_EN);
 	if (rc < 0) {
@@ -1486,7 +1536,7 @@ static int msm8930_s5k6a2ya_vreg_on(void)
 	gpio_free(CAM_PIN_GPIO_V_CAM_D1V8_EN);
 
 
-	
+	/* VCM PD */
 	rc = gpio_request(CAM_PIN_GPIO_CAM_VCM_PD, "CAM_VCM_PD");
 	pr_info("[CAM] vcm pd gpio_request, %d\n", CAM_PIN_GPIO_CAM_VCM_PD);
 	if (rc < 0) {
@@ -1498,7 +1548,7 @@ static int msm8930_s5k6a2ya_vreg_on(void)
 
 	udelay(500);
 
-	
+	/* analog */
 	rc = camera_sensor_power_enable("8038_l8", 2800000, &reg_8038_l8);
 	pr_info("[CAM] sensor_power_enable(\"8038_l8\", 2.8V) == %d\n", rc);
 	if (rc < 0) {
@@ -1507,7 +1557,7 @@ static int msm8930_s5k6a2ya_vreg_on(void)
 	}
 	udelay(50);
 
-	
+	/* IO */
 	rc = gpio_request(CAM_PIN_GPIO_V_CAMIO_1V8_EN, "V_CAMIO_1V8_EN");
 	pr_info("[CAM] cam io gpio_request, %d\n", CAM_PIN_GPIO_V_CAMIO_1V8_EN);
 	if (rc < 0) {
@@ -1518,7 +1568,7 @@ static int msm8930_s5k6a2ya_vreg_on(void)
 	gpio_free(CAM_PIN_GPIO_V_CAMIO_1V8_EN);
 	udelay(50);
 
-	
+	/* 2nd cam digital */
 	rc = gpio_request(CAM_PIN_GPIO_V_CAM2_D1V2_EN, "V_CAM2_D1V2_EN");
 	pr_info("[CAM] 2nd cam digital gpio_request, %d\n", CAM_PIN_GPIO_V_CAM2_D1V2_EN);
 	if (rc < 0) {
@@ -1529,7 +1579,7 @@ static int msm8930_s5k6a2ya_vreg_on(void)
 	gpio_free(CAM_PIN_GPIO_V_CAM2_D1V2_EN);
 	udelay(50);
 
-	
+	/* reset pin */
 	rc = gpio_request(CAM_PIN_GPIO_CAM2_RSTz, "s5k6a2ya");
 	pr_info("[CAM] reset pin gpio_request, %d\n", CAM_PIN_GPIO_CAM2_RSTz);
 	if (rc < 0) {
@@ -1589,7 +1639,7 @@ static int msm8930_s5k6a2ya_vreg_off(void)
 	int rc = 0;
 	pr_info("[CAM] %s\n", __func__);
 
-	
+	/* reset pin */
 	rc = gpio_request(CAM_PIN_GPIO_CAM2_RSTz, "s5k6a2ya");
 	pr_info("[CAM] reset pin gpio_request, %d\n", CAM_PIN_GPIO_CAM2_RSTz);
 	if (rc < 0)
@@ -1600,14 +1650,14 @@ static int msm8930_s5k6a2ya_vreg_off(void)
 	}
 	udelay(50);
 
-	
+	/* analog */
 	pr_info("[CAM] sensor_power_disable(\"8038_l8\") == %d\n", rc);
 	rc = camera_sensor_power_disable(reg_8038_l8);
 	if (rc < 0)
 		pr_err("[CAM] sensor_power_disable(\"reg_8038_l8\") FAILED %d\n", rc);
 	udelay(50);
 
-	
+	/* 2nd digital */
 	rc = gpio_request(CAM_PIN_GPIO_V_CAM2_D1V2_EN, "V_CAM2_D1V2_EN");
 	pr_info("[CAM] 2nd cam digital gpio_request, %d\n", CAM_PIN_GPIO_V_CAM2_D1V2_EN);
 	if (rc < 0)
@@ -1618,7 +1668,7 @@ static int msm8930_s5k6a2ya_vreg_off(void)
 	}
 	msleep(1);
 
-	
+	/* digital */
 	rc = gpio_request(CAM_PIN_GPIO_V_CAM_D1V8_EN, "V_CAM_D1V8_EN");
 	pr_info("[CAM] digital gpio_request, %d\n", CAM_PIN_GPIO_V_CAM_D1V8_EN);
 	if (rc < 0)
@@ -1632,7 +1682,7 @@ static int msm8930_s5k6a2ya_vreg_off(void)
 	}
 	udelay(50);
 
-	
+	/* IO */
 	rc = gpio_request(CAM_PIN_GPIO_V_CAMIO_1V8_EN, "V_CAMIO_1V8_EN");
 	pr_info("[CAM] cam io gpio_request, %d\n", CAM_PIN_GPIO_V_CAMIO_1V8_EN);
 	if (rc < 0)
@@ -1642,7 +1692,7 @@ static int msm8930_s5k6a2ya_vreg_off(void)
 		gpio_free(CAM_PIN_GPIO_V_CAMIO_1V8_EN);
 	}
 
-	
+	/* VCM PD */
 	rc = gpio_request(CAM_PIN_GPIO_CAM_VCM_PD, "CAM_VCM_PD");
 	pr_info("[CAM] vcm pd gpio_request, %d\n", CAM_PIN_GPIO_CAM_VCM_PD);
 	if (rc < 0)
@@ -1653,13 +1703,13 @@ static int msm8930_s5k6a2ya_vreg_off(void)
 	}
 	udelay(50);
 
-	
+	/* VCM */
 	pr_info("[CAM] sensor_power_disable(\"reg_8038_l17\") == %d\n", rc);
 	rc = camera_sensor_power_disable(reg_8038_l17);
 	if (rc < 0)
 		pr_err("[CAM] sensor_power_disable(\"reg_8038_l17\") FAILED %d\n", rc);
 
-	
+	/* MIPI Switch */
 	rc = gpio_request(CAM_PIN_GPIO_CAM2_SEL, "CAM2_SEL");
 	pr_info("[CAM] cam sel gpio_request, %d\n", CAM_PIN_GPIO_CAM2_SEL);
 	if (rc < 0)
@@ -1709,7 +1759,7 @@ static struct msm_camera_sensor_info msm_camera_sensor_s5k6a2ya_data = {
 	.camera_type = FRONT_CAMERA_2D,
 	.use_rawchip = 1,
 };
-#endif	
+#endif	//CONFIG_S5K6A2YA
 
 static struct platform_device msm_camera_server = {
 	.name = "msm_cam_server",
@@ -1717,7 +1767,7 @@ static struct platform_device msm_camera_server = {
 };
 
 #ifdef CONFIG_I2C
-struct i2c_board_info k2_camera_i2c_boardinfo[] = {
+struct i2c_board_info k2_cl_camera_i2c_boardinfo[] = {
 
 #ifdef CONFIG_OV5693
 	{
@@ -1735,7 +1785,7 @@ struct i2c_board_info k2_camera_i2c_boardinfo[] = {
 
 };
 
-struct i2c_board_info k2_camera_i2c_boardinfo_old[] = {
+struct i2c_board_info k2_cl_camera_i2c_boardinfo_old[] = {
 
 #ifdef CONFIG_S5K4E5YX
 	{
@@ -1752,14 +1802,14 @@ struct i2c_board_info k2_camera_i2c_boardinfo_old[] = {
 #endif
 };
 
-struct msm_camera_board_info k2_camera_board_info = {0};
+struct msm_camera_board_info k2_cl_camera_board_info = {0};
 #endif
 
 
 #define GPIO_IN_OUT(n) (MSM_TLMM_BASE + 0x1004 + (0x10 * n))
 
 
-void __init k2_init_cam(void)
+void __init k2_cl_init_cam(void)
 {
 	int rc = 0;
 	int voltage = 0;
@@ -1779,7 +1829,7 @@ void __init k2_init_cam(void)
 	platform_device_register(&msm8960_device_vpe);
 
 #ifdef CONFIG_I2C
-	
+	/* Pre-setting for i2c sensor device */
 	rc = gpio_request(CAM_PIN_GPIO_CAM_ID, "MSM_CAM_ID");
 	pr_info("[CAM] cam id gpio_request, %d\n", CAM_PIN_GPIO_CAM_ID);
 	if (rc < 0)
@@ -1790,7 +1840,7 @@ void __init k2_init_cam(void)
 			GPIO_CFG(CAM_PIN_GPIO_CAM_ID, 0, GPIO_CFG_INPUT, GPIO_CFG_PULL_UP, GPIO_CFG_2MA),
 			GPIO_CFG_ENABLE);
 		msleep(1);
-		
+		/* direction: GPIO_CFG_INPUT */
 		voltage = readl(GPIO_IN_OUT(CAM_PIN_GPIO_CAM_ID)) & BIT(0);
 		pr_info("[CAM] CAM ID voltage: %d\n", voltage);
 
@@ -1800,13 +1850,13 @@ void __init k2_init_cam(void)
 		gpio_free(CAM_PIN_GPIO_CAM_ID);
 	}
 
-	if (0) { 
+	if (voltage == 1) {
 		pr_info("[CAM] use s5k4e5yx and s5k6a1gx\n");
-		k2_camera_board_info.board_info = k2_camera_i2c_boardinfo_old;
-		k2_camera_board_info.num_i2c_board_info = ARRAY_SIZE(k2_camera_i2c_boardinfo_old);
+		k2_cl_camera_board_info.board_info = k2_cl_camera_i2c_boardinfo_old;
+		k2_cl_camera_board_info.num_i2c_board_info = ARRAY_SIZE(k2_cl_camera_i2c_boardinfo_old);
 	} else {
-		k2_camera_board_info.board_info = k2_camera_i2c_boardinfo;
-		k2_camera_board_info.num_i2c_board_info = ARRAY_SIZE(k2_camera_i2c_boardinfo);
+		k2_cl_camera_board_info.board_info = k2_cl_camera_i2c_boardinfo;
+		k2_cl_camera_board_info.num_i2c_board_info = ARRAY_SIZE(k2_cl_camera_i2c_boardinfo);
 	}
 #endif
 

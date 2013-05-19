@@ -17,14 +17,14 @@
 #include <mach/msm_bus_board.h>
 #include <mach/board.h>
 #include <mach/msm_iomap.h>
-#include "../devices.h"
-#include "../board-8930.h"
+#include "devices.h"
+#include "board-8930.h"
 #ifdef CONFIG_MACH_K2_WL
-#include "../board-k2_wl.h"
-#elif defined CONFIG_MACH_DUMMY
-#include "../board-k2_cl.h"
-#elif defined CONFIG_MACH_DUMMY
-#include "../board-k2_plc_cl.h"
+#include "board-k2_wl.h"
+#elif defined CONFIG_MACH_K2_CL
+#include "board-k2_cl.h"
+#elif defined CONFIG_MACH_K2_PLC_CL
+#include "board-k2_plc_cl.h"
 #endif
 #ifdef CONFIG_MSM_BUS_SCALING
 static struct msm_bus_vectors grp3d_init_vectors[] = {

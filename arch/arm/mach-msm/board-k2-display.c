@@ -31,13 +31,13 @@
 #include "devices.h"
 #ifdef CONFIG_MACH_K2_WL
 #include "board-k2_wl.h"
-#elif defined CONFIG_MACH_DUMMY
+#elif defined CONFIG_MACH_K2_CL
 #include "board-k2_cl.h"
-#elif defined CONFIG_MACH_DUMMY
+#elif defined CONFIG_MACH_K2_PLC_CL
 #include "board-k2_plc_cl.h"
 #elif defined CONFIG_MACH_K2_UL
 #include "board-k2_ul.h"
-#elif defined CONFIG_MACH_DUMMY
+#elif defined CONFIG_MACH_K2_U
 #include "board-k2_u.h"
 #endif
 #include <mach/panel_id.h>
