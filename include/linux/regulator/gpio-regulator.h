@@ -80,7 +80,7 @@ struct gpio_regulator_config {
 	struct gpio_regulator_state *states;
 	int nr_states;
 
-	enum regulator_type type;
+	enum regulator_type *type;
 	struct regulator_init_data *init_data;
 };
 

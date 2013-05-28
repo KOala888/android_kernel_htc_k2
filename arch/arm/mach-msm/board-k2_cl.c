@@ -1533,20 +1533,33 @@ void config_k2_cl_usb_id_gpios(bool output)
 }
 
 static struct cable_detect_platform_data cable_detect_pdata = {
-	.detect_type		= CABLE_TYPE_PMIC_ADC,
-	.usb_id_pin_gpio	= MSM_USB_ID1,
-	.get_adc_cb		= k2_cl_get_usbid_adc,
-	.config_usb_id_gpios	= config_k2_cl_usb_id_gpios,
+        .detect_type            = CABLE_TYPE_PMIC_ADC,
+        .usb_id_pin_gpio        = MSM_USB_ID1,
+        .get_adc_cb             = k2_cl_get_usbid_adc,
+        .config_usb_id_gpios    = config_k2_cl_usb_id_gpios,
 };
 
 
 static struct platform_device cable_detect_device = {
-	.name   = "cable_detect",
-	.id     = -1,
-	.dev    = {
-		.platform_data = &cable_detect_pdata,
-	},
+        .name   = "cable_detect",
+        .id     = -1,
+        .dev    = {
+                .platform_data = &cable_detect_pdata,
+        },
 };
+
+void k2cl_cable_detect_register(void)
+{
+        platform_device_register(&cable_detect_device);
+}
+
+void pm8xxx_adc_device_driver_register(void)
+{
+        pr_info("%s: Register PM8XXX ADC device. rev: %d\n",
+                __func__, system_rev);
+        k2cl_cable_detect_register();
+}
+
 
 #if defined(CONFIG_CRYPTO_DEV_QCEDEV) || \
 		defined(CONFIG_CRYPTO_DEV_QCEDEV_MODULE)
@@ -3437,8 +3450,9 @@ static void __init k2_cl_init(void)
 	 */
 
 	msm8930_init_pmic();
-
 	msm8930_i2c_init();
+
+	k2_init_fb();
 	k2_init_gpu();
 	msm_spm_init(msm_spm_data, ARRAY_SIZE(msm_spm_data));
 	msm_spm_l2_init(msm_spm_l2_data);
@@ -3458,9 +3472,6 @@ static void __init k2_cl_init(void)
 	msm_device_uart_dm6.name = "msm_serial_hs_brcm";
 	msm_device_uart_dm6.dev.platform_data = &msm_uart_dm6_pdata;
 #endif
-
-	platform_add_devices(msm_footswitch_devices,
-		msm_num_footswitch_devices);
 	platform_add_devices(common_devices, ARRAY_SIZE(common_devices));
 	msm_uart_gsbi_gpio_init();
 	msm8930_add_vidc_device();
