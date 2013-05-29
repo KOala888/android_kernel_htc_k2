@@ -1533,33 +1533,20 @@ void config_k2_cl_usb_id_gpios(bool output)
 }
 
 static struct cable_detect_platform_data cable_detect_pdata = {
-        .detect_type            = CABLE_TYPE_PMIC_ADC,
-        .usb_id_pin_gpio        = MSM_USB_ID1,
-        .get_adc_cb             = k2_cl_get_usbid_adc,
-        .config_usb_id_gpios    = config_k2_cl_usb_id_gpios,
+	.detect_type		= CABLE_TYPE_PMIC_ADC,
+	.usb_id_pin_gpio	= MSM_USB_ID1,
+	.get_adc_cb		= k2_cl_get_usbid_adc,
+	.config_usb_id_gpios	= config_k2_cl_usb_id_gpios,
 };
 
 
 static struct platform_device cable_detect_device = {
-        .name   = "cable_detect",
-        .id     = -1,
-        .dev    = {
-                .platform_data = &cable_detect_pdata,
-        },
+	.name   = "cable_detect",
+	.id     = -1,
+	.dev    = {
+		.platform_data = &cable_detect_pdata,
+	},
 };
-
-void k2cl_cable_detect_register(void)
-{
-        platform_device_register(&cable_detect_device);
-}
-
-void pm8xxx_adc_device_driver_register(void)
-{
-        pr_info("%s: Register PM8XXX ADC device. rev: %d\n",
-                __func__, system_rev);
-        k2cl_cable_detect_register();
-}
-
 
 #if defined(CONFIG_CRYPTO_DEV_QCEDEV) || \
 		defined(CONFIG_CRYPTO_DEV_QCEDEV_MODULE)
@@ -2279,7 +2266,7 @@ static struct attribute_group syn_properties_attr_group = {
 
 static void syn_init_vkeys_k2(void)
 {
-	int rc;
+	int rc = 0;
 	static struct kobject *syn_properties_kobj;
 
 	syn_properties_kobj = kobject_create_and_add("board_properties", NULL);
@@ -2818,6 +2805,24 @@ static struct msm_i2c_platform_data msm8960_i2c_qup_gsbi12_pdata = {
 	.msm_i2c_config_gpio = gsbi_qup_i2c_gpio_config,
 };
 
+/*
+static struct ks8851_pdata spi_eth_pdata = {
+	.irq_gpio = KS8851_IRQ_GPIO,
+	.rst_gpio = KS8851_RST_GPIO,
+};
+
+static struct spi_board_info spi_board_info[] __initdata = {
+	{
+		.modalias               = "ks8851",
+		.irq                    = MSM_GPIO_TO_INT(KS8851_IRQ_GPIO),
+		.max_speed_hz           = 19200000,
+		.bus_num                = 0,
+		.chip_select            = 0,
+		.mode                   = SPI_MODE_0,
+		.platform_data		= &spi_eth_pdata
+	},
+};
+*/
 #if defined(CONFIG_MSM_CAMERA) && defined(CONFIG_RAWCHIP)
 static struct spi_board_info rawchip_spi_board_info[] __initdata = {
 	{
@@ -2896,6 +2901,21 @@ static struct platform_device msm8930_device_ext_l2_vreg __devinitdata = {
 
 #else
 
+/* 8930 Phase 2 */
+//HTC_AUD ++
+//Deleting this part because GPIO 63 is used for HTC AUXPCM DOUT.
+/*
+static struct platform_device msm8930_device_ext_5v_vreg __devinitdata = {
+	.name	= GPIO_REGULATOR_DEV_NAME,
+	.id	= 63,
+	.dev	= {
+		.platform_data =
+		     &msm8930_gpio_regulator_pdata[MSM8930_GPIO_VREG_ID_EXT_5V],
+	},
+};
+*/
+//HTC_AUD --
+
 static struct platform_device msm8930_device_ext_otg_sw_vreg __devinitdata = {
 	.name	= GPIO_REGULATOR_DEV_NAME,
 	.id	= 97,
@@ -2958,9 +2978,9 @@ static struct platform_device *common_devices[] __initdata = {
 	&msm_device_smd,
 	&msm8960_device_uart_gsbi3,
 	&msm8960_device_uart_gsbi8,
-
 	&msm_device_saw_core0,
 	&msm_device_saw_core1,
+
 #ifndef MSM8930_PHASE_2
 	&msm8930_device_ext_l2_vreg,
 #endif
@@ -3049,13 +3069,16 @@ static struct platform_device *common_devices[] __initdata = {
 	&msm8960_device_cache_erp,
 	&msm8930_iommu_domain_device,
 	&msm_tsens_device,
-#ifdef CONFIG_BT
+#ifdef CONFIG_BT /* HTC_BT add */
 	&msm_device_uart_dm6,
 	&k2_cl_rfkill,
 #endif
+	&cable_detect_device,
+//HTC_AUD ++
 	&apq_cpudai_pri_i2s_rx,
 	&apq_cpudai_pri_i2s_tx,
 	&msm_cpudai_mi2s,
+//HTC_AUD --
 #ifdef CONFIG_PERFLOCK
 	&msm8960_device_perf_lock,
 #endif
@@ -3450,6 +3473,7 @@ static void __init k2_cl_init(void)
 	 */
 
 	msm8930_init_pmic();
+
 	msm8930_i2c_init();
 
 	k2_init_fb();
@@ -3472,6 +3496,7 @@ static void __init k2_cl_init(void)
 	msm_device_uart_dm6.name = "msm_serial_hs_brcm";
 	msm_device_uart_dm6.dev.platform_data = &msm_uart_dm6_pdata;
 #endif
+
 	platform_add_devices(common_devices, ARRAY_SIZE(common_devices));
 	msm_uart_gsbi_gpio_init();
 	msm8930_add_vidc_device();
@@ -3560,6 +3585,5 @@ MACHINE_START(K2_CL, "k2_cl")
 	.init_machine = k2_cl_init,
 	.init_early = msm8930_allocate_memory_regions,
 	.init_very_early = k2_cl_early_memory,
-	.restart = msm_restart,
 MACHINE_END
 
