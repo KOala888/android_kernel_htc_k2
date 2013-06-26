@@ -21,6 +21,8 @@
 #include "devices.h"
 #include "board-8930.h"
 
+void pm8xxx_adc_device_driver_register(void);
+
 struct pm8xxx_gpio_init {
 	unsigned			gpio;
 	struct pm_gpio			config;
@@ -86,26 +88,12 @@ struct pm8xxx_mpp_init {
 			PM_GPIO_STRENGTH_HIGH, \
 			PM_GPIO_FUNC_NORMAL, 0, 0)
 
-#define EVM	0x99
-#define EVM1	99
-#define XA	0
-#define XB	1
-#define XC	2
-#define XD	3
-#define PVT	0x80
-
-/* Initial pm8038 GPIO configurations */
 static struct pm8xxx_gpio_init pm8038_gpios[] __initdata = {
-	/* keys GPIOs */
-#ifdef CONFIG_MACH_TC2
-	PM8XXX_GPIO_OUTPUT_FUNC(1, 0, PM_GPIO_FUNC_1),
-#endif
+	
 };
 
-/* Initial pm8038 MPP configurations */
 static struct pm8xxx_mpp_init pm8038_mpps[] __initdata = {
-	/* External 5V regulator enable; shared by HDMI and USB_OTG switches. */
-	PM8XXX_MPP_INIT(3, D_INPUT, PM8038_MPP_DIG_LEVEL_VPH, DIN_TO_INT),
+	
 };
 
 void __init msm8930_pm8038_gpio_mpp_init(void)
@@ -121,7 +109,7 @@ void __init msm8930_pm8038_gpio_mpp_init(void)
 		}
 	}
 
-	/* Initial MPP configuration. */
+	
 	for (i = 0; i < ARRAY_SIZE(pm8038_mpps); i++) {
 		rc = pm8xxx_mpp_config(pm8038_mpps[i].mpp,
 					&pm8038_mpps[i].config);
@@ -170,7 +158,7 @@ static struct pm8xxx_adc_amux pm8xxx_adc_channels_data[] = {
 };
 
 static struct pm8xxx_adc_properties pm8xxx_adc_data = {
-	.adc_vdd_reference	= 1800, /* milli-voltage for this adc */
+	.adc_vdd_reference	= 1800, 
 	.bitresolution		= 15,
 	.bipolar                = 0,
 };
@@ -283,121 +271,13 @@ static struct pm8xxx_adc_map_table pm8xxx_adcmap_btm_table = {
 	.size = ARRAY_SIZE(k2_cl_adcmap_btm_table),
 };
 
-
-static const struct pm8xxx_adc_map_pt k2_cl_sprint_adcmap_btm_table[] = {
-	{-200,	1670},
-	{-190,	1662},
-	{-180,	1654},
-	{-170,	1645},
-	{-160,	1636},
-	{-150,	1626},
-	{-140,	1616},
-	{-130,	1606},
-	{-120,	1595},
-	{-110,	1583},
-	{-100,	1571},
-	{-90,	1559},
-	{-80,	1546},
-	{-70,	1533},
-	{-60,	1519},
-	{-50,	1505},
-	{-40,	1491},
-	{-30,	1476},
-	{-20,	1460},
-	{-10,	1444},
-	{-0,	1428},
-	{10,	1411},
-	{20,	1393},
-	{30,	1376},
-	{40,	1358},
-	{50,	1339},
-	{60,	1321},
-	{70,	1301},
-	{80,	1282},
-	{90,	1262},
-	{100,	1242},
-	{110,	1222},
-	{120,	1202},
-	{130,	1181},
-	{140,	1161},
-	{150,	1140},
-	{160,	1119},
-	{170,	1097},
-	{180,	1077},
-	{190,	1055},
-	{200,	1034},
-	{210,	1013},
-	{220,	992},
-	{230,	971},
-	{240,	950},
-	{250,	930},
-	{260,	909},
-	{270,	889},
-	{280,	869},
-	{290,	849},
-	{300,	829},
-	{310,	810},
-	{320,	790},
-	{330,	772},
-	{340,	753},
-	{350,	735},
-	{360,	717},
-	{370,	700},
-	{380,	683},
-	{390,	666},
-	{400,	649},
-	{410,	633},
-	{420,	618},
-	{430,	602},
-	{440,	587},
-	{450,	573},
-	{460,	559},
-	{470,	545},
-	{480,	531},
-	{490,	518},
-	{500,	506},
-	{510,	493},
-	{520,	481},
-	{530,	470},
-	{540,	458},
-	{550,	447},
-	{560,	437},
-	{570,	426},
-	{580,	416},
-	{590,	406},
-	{600,	397},
-	{610,	388},
-	{620,	379},
-	{630,	371},
-	{640,	362},
-	{650,	354},
-	{660,	347},
-	{670,	339},
-	{680,	332},
-	{690,	325},
-	{700,	318},
-	{710,	312},
-	{720,	306},
-	{730,	299},
-	{740,	294},
-	{750,	288},
-	{760,	282},
-	{770,	277},
-	{780,	272},
-	{790,	267}
-};
-
-static struct pm8xxx_adc_map_table pm8xxx_sprint_adcmap_btm_table = {
-	.table = k2_cl_sprint_adcmap_btm_table,
-	.size = ARRAY_SIZE(k2_cl_sprint_adcmap_btm_table),
-};
-
 static struct pm8xxx_adc_platform_data pm8xxx_adc_pdata = {
 	.adc_channel            = pm8xxx_adc_channels_data,
 	.adc_num_board_channel  = ARRAY_SIZE(pm8xxx_adc_channels_data),
 	.adc_prop               = &pm8xxx_adc_data,
 	.adc_mpp_base		= PM8038_MPP_PM_TO_SYS(1),
-	.adc_map_btm_table	= &pm8xxx_sprint_adcmap_btm_table,
+	.adc_map_btm_table	= &pm8xxx_adcmap_btm_table,
+	.pm8xxx_adc_device_register	= pm8xxx_adc_device_driver_register,
 };
 
 static struct pm8xxx_irq_platform_data pm8xxx_irq_pdata __devinitdata = {
@@ -448,7 +328,7 @@ static struct pm8921_charger_platform_data pm8921_chg_pdata __devinitdata = {
 	.warm_bat_chg_current	= 1125,
 	.cool_bat_voltage	= 4200,
 	.warm_bat_voltage	= 4000,
-	.mbat_in_gpio		= 94,/* MBAT_IN : 94*/
+	.mbat_in_gpio		= 94,
 	.thermal_mitigation	= pm8921_therm_mitigation,
 	.thermal_levels		= ARRAY_SIZE(pm8921_therm_mitigation),
 	.cold_thr = PM_SMBC_BATT_TEMP_COLD_THR__HIGH,
@@ -491,7 +371,6 @@ static struct wled_config_data wled_cfg = {
 	.boost_curr_lim = WLED_CURR_LIMIT_525mA,
 	.num_strings = 1,
 };
-#if defined(CONFIG_MACH_TC2) || defined(CONFIG_MACH_K2_CL)
 static int pm8038_led0_pwm_duty_pcts[64] = {
 			0, 15, 30, 45, 60, 75, 90, 100,
 			100, 90, 75, 60, 45, 30, 15, 0,
@@ -510,7 +389,6 @@ static struct pm8xxx_pwm_duty_cycles pm8038_led0_pwm_duty_cycles = {
 	.duty_ms = PM8XXX_LED_PWM_DUTY_MS,
 	.start_idx = 0,
 };
-#endif
 static struct pm8xxx_led_config pm8038_led_configs[] = {
 	[0] = {
 		.id = PM8XXX_ID_WLED,
@@ -524,6 +402,7 @@ static struct pm8xxx_led_config pm8038_led_configs[] = {
 		.mode = PM8XXX_LED_MODE_PWM1,
 		.pwm_channel = 5,
 		.pwm_period_us = PM8XXX_LED_PWM_PERIOD,
+		.pwm_coefficient = 20,
 	},
 	[2] = {
 		.id = PM8XXX_ID_RGB_LED_GREEN,
@@ -531,17 +410,6 @@ static struct pm8xxx_led_config pm8038_led_configs[] = {
 		.pwm_channel = 4,
 		.pwm_period_us = PM8XXX_LED_PWM_PERIOD,
 	},
-#ifdef CONFIG_MACH_TC2
-	[3] = {
-		.id = PM8XXX_ID_RGB_LED_BLUE,
-		.mode = PM8XXX_LED_MODE_PWM1,
-		.max_current = PM8038_RGB_LED_MAX_CURRENT,
-		.pwm_channel = 0,
-		.pwm_period_us = PM8XXX_LED_PWM_PERIOD,
-		.pwm_duty_cycles = &pm8038_led0_pwm_duty_cycles,
-	},
-#endif
-#ifdef CONFIG_MACH_K2_CL
 	[3] = {
 		.id = PM8XXX_ID_RGB_LED_BLUE,
 		.mode = PM8XXX_LED_MODE_PWM1,
@@ -550,7 +418,6 @@ static struct pm8xxx_led_config pm8038_led_configs[] = {
 		.pwm_period_us = PM8XXX_LED_PWM_PERIOD,
 		.pwm_duty_cycles = &pm8038_led0_pwm_duty_cycles,
 	},
-#endif
 };
 
 static struct pm8xxx_led_platform_data pm8xxx_leds_pdata = {

@@ -357,7 +357,7 @@ static const struct snd_kcontrol_new spkamp_switch_controls =
 	SOC_DAPM_SINGLE("Switch", 0, 0, 1, 0);
 
 
-static const struct snd_soc_dapm_widget k2ul_dapm_widgets[] = {
+static const struct snd_soc_dapm_widget k2cl_dapm_widgets[] = {
 	SND_SOC_DAPM_MIXER("Lineout Mixer", SND_SOC_NOPM, 0, 0, NULL, 0),
 	SND_SOC_DAPM_MIXER("SPK AMP EN", SND_SOC_NOPM, 0, 0, &spkamp_switch_controls, 1),
 	SND_SOC_DAPM_MIXER("HAC AMP EN", SND_SOC_NOPM, 0, 0, &earamp_switch_controls, 1),
@@ -614,8 +614,8 @@ static int msm8930_audrx_init(struct snd_soc_pcm_runtime *rtd)
 	snd_soc_dapm_new_controls(dapm, msm8930_dapm_widgets,
 				ARRAY_SIZE(msm8930_dapm_widgets));
 
-	 snd_soc_dapm_new_controls(dapm, k2ul_dapm_widgets,
-								 ARRAY_SIZE(k2ul_dapm_widgets));
+	 snd_soc_dapm_new_controls(dapm, k2cl_dapm_widgets,
+								 ARRAY_SIZE(k2cl_dapm_widgets));
 
 	snd_soc_dapm_add_routes(dapm, common_audio_map,
 		ARRAY_SIZE(common_audio_map));
@@ -1283,20 +1283,20 @@ struct snd_soc_card snd_soc_card_msm8930 = {
 
 static struct platform_device *msm8930_snd_device;
 
-void k2ul_set_q6_effect_mode(int mode)
+void k2cl_set_q6_effect_mode(int mode)
 {
 	pr_info("%s: mode %d\n", __func__, mode);
 	atomic_set(&q6_effect_mode, mode);
 }
 
-int k2ul_get_q6_effect_mode(void)
+int k2cl_get_q6_effect_mode(void)
 {
 	int mode = atomic_read(&q6_effect_mode);
 	pr_info("%s: mode %d\n", __func__, mode);
 	return mode;
 }
 
-int k2ul_get_hw_revision(void)
+int k2cl_get_hw_revision(void)
 {
 	int audio_hw_rev;
 
@@ -1306,29 +1306,29 @@ int k2ul_get_hw_revision(void)
 	return audio_hw_rev;
 }
 
-int k2ul_get_component_info(void)
+int k2cl_get_component_info(void)
 {
 	return 0;
 }
 
-int k2ul_enable_digital_mic(void)
+int k2cl_enable_digital_mic(void)
 {
 	return 0;
 }
 
 static struct acoustic_ops acoustic = {
-	.set_q6_effect = k2ul_set_q6_effect_mode,
-	.get_htc_revision = k2ul_get_hw_revision,
-	.get_hw_component = k2ul_get_component_info,
-	.enable_digital_mic = k2ul_enable_digital_mic,
+	.set_q6_effect = k2cl_set_q6_effect_mode,
+	.get_htc_revision = k2cl_get_hw_revision,
+	.get_hw_component = k2cl_get_component_info,
+	.enable_digital_mic = k2cl_enable_digital_mic,
 };
 
 static struct q6asm_ops qops = {
-	.get_q6_effect = k2ul_get_q6_effect_mode,
+	.get_q6_effect = k2cl_get_q6_effect_mode,
 };
 
 static struct msm_pcm_routing_ops rops = {
-	.get_q6_effect = k2ul_get_q6_effect_mode,
+	.get_q6_effect = k2cl_get_q6_effect_mode,
 };
 
 static int __init msm8930_audio_init(void)
